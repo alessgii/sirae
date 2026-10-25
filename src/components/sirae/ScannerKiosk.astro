@@ -1,0 +1,227 @@
+---
+const { id, hidden } = Astro.props;
+---
+
+<section id={id} hidden={hidden} class="flex flex-col min-h-[calc(100vh-8rem)]">
+    <!-- Cabecera de la conferencia en curso -->
+    <div
+        class="flex items-center justify-between bg-white shadow-custom rounded-custom p-6 mb-8 border border-border-main"
+    >
+        <div>
+            <span
+                id="kiosk-status"
+                class="inline-flex items-center px-3 py-1 rounded-full bg-turq-pale text-turq-acc text-xs font-bold tracking-wide"
+            >
+                REGISTRO ABIERTO
+            </span>
+            <h2 id="kiosk-title" class="text-2xl font-bold text-navy mt-2">
+                Cargando...
+            </h2>
+        </div>
+        <div class="text-right flex items-center gap-6">
+            <div>
+                <p
+                    id="kiosk-count"
+                    class="text-4xl font-bold text-navy tabular-nums"
+                >
+                    0
+                </p>
+                <p
+                    class="text-xs font-semibold text-text-muted uppercase tracking-wider"
+                >
+                    Asistentes
+                </p>
+            </div>
+            <button
+                id="btn-end"
+                class="px-6 py-2.5 rounded-custom border-2 border-border-main text-text-mid font-bold hover:bg-bg-main transition-colors"
+            >
+                Finalizar
+            </button>
+        </div>
+    </div>
+
+    <!-- Zona central de escaneo (UX guiada por color) -->
+    <div class="flex-1 flex flex-col items-center justify-center">
+        <div
+            id="scan-feedback"
+            class="w-full max-w-2xl bg-white shadow-custom-lg rounded-custom p-12 text-center border-4 border-transparent transition-all duration-300"
+        >
+            <div
+                id="feedback-icon"
+                class="size-20 mx-auto rounded-full bg-bg-main flex items-center justify-center text-4xl mb-6"
+            >
+                ⏳
+            </div>
+            <h3 id="feedback-title" class="text-3xl font-bold text-navy">
+                Esperando credencial
+            </h3>
+            <p id="feedback-subtitle" class="text-lg text-text-muted mt-2">
+                Acerca la tarjeta al lector o usa el teclado
+            </p>
+        </div>
+
+        <!-- Input invisible pero accesible -->
+        <input
+            id="nfc-input"
+            type="text"
+            autofocus
+            autocomplete="off"
+            class="opacity-0 absolute -z-10"
+            aria-label="Lector NFC o teclado"
+        />
+    </div>
+</section>
+
+<script>
+    import { supabase } from "../../lib/supabase";
+
+    const section = document.getElementById("view-register");
+    const input = document.getElementById("nfc-input") as HTMLInputElement;
+    const feedbackBox = document.getElementById("scan-feedback");
+    const feedbackIcon = document.getElementById("feedback-icon");
+    const feedbackTitle = document.getElementById("feedback-title");
+    const feedbackSubtitle = document.getElementById("feedback-subtitle");
+
+    let activeConferenceId: number | null = null;
+    let resetTimer: number;
+
+    // Forzar foco ininterrumpido (UX sin mouse)
+    const keepFocus = () => {
+        if (!section?.hidden) input.focus({ preventScroll: true });
+    };
+    document.addEventListener("click", keepFocus);
+    window.addEventListener("blur", () => setTimeout(keepFocus, 10));
+
+    // Recibir inicialización del Orquestador
+    section?.addEventListener("kiosk:init", ((e: CustomEvent) => {
+        const conf = e.detail;
+        activeConferenceId = conf.conference_id;
+        document.getElementById("kiosk-title")!.textContent =
+            conf.conference_name;
+        keepFocus();
+        setIdle();
+    }) as EventListener);
+
+    document.getElementById("btn-end")?.addEventListener("click", () => {
+        document.dispatchEvent(new Event("sirae:end-kiosk"));
+        activeConferenceId = null;
+    });
+
+    // Procesamiento de lectura de Hardware (NFC/Teclado)
+    input?.addEventListener("keydown", async (e) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const code = input.value.trim();
+        input.value = "";
+        if (!code || !activeConferenceId) return;
+
+        await processAttendance(code);
+    });
+
+    async function processAttendance(code: string) {
+        // 1. Llamada a la DB desacoplada
+        const { data, error } = await supabase.rpc("register_attendance", {
+            p_conference_id: activeConferenceId,
+            p_code: code,
+        });
+
+        if (error || !data)
+            return setFeedback(
+                "error",
+                "Error de conexión",
+                "Vuelve a pasar la credencial",
+            );
+
+        // 2. Feedback visual basado en colores institucionales
+        switch (data.status) {
+            case "registered":
+                setFeedback(
+                    "success",
+                    "Asistencia Registrada",
+                    data.full_name || "Alumno sin cuenta",
+                    data.student_code,
+                );
+                updateCount(1);
+                break;
+            case "duplicate":
+                setFeedback(
+                    "warn",
+                    "Ya registrado",
+                    "Esta credencial ya pasó asistencia hoy",
+                    data.student_code,
+                );
+                break;
+            default:
+                setFeedback("error", "Acceso denegado", data.status);
+        }
+    }
+
+    function setFeedback(
+        state: "idle" | "success" | "warn" | "error",
+        title: string,
+        subtitle: string,
+        code = "",
+    ) {
+        clearTimeout(resetTimer);
+
+        // Mapeo de colores institucionales a Tailwind
+        const states = {
+            idle: {
+                border: "border-transparent",
+                bg: "bg-white",
+                iconBg: "bg-bg-main",
+                icon: "⏳",
+                text: "text-navy",
+            },
+            success: {
+                border: "border-green",
+                bg: "bg-green-pale",
+                iconBg: "bg-green text-white",
+                icon: "✓",
+                text: "text-green",
+            },
+            warn: {
+                border: "border-[#f5a623]",
+                bg: "bg-[#fff9e6]",
+                iconBg: "bg-[#f5a623] text-white",
+                icon: "!",
+                text: "text-[#d48c00]",
+            },
+            error: {
+                border: "border-[#e02424]",
+                bg: "bg-[#fde8e8]",
+                iconBg: "bg-[#e02424] text-white",
+                icon: "✕",
+                text: "text-[#c81e1e]",
+            },
+        };
+
+        const s = states[state];
+        feedbackBox!.className = `w-full max-w-2xl shadow-custom-lg rounded-custom p-12 text-center border-4 transition-colors duration-200 ${s.border} ${s.bg}`;
+        feedbackIcon!.className = `size-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-6 ${s.iconBg}`;
+        feedbackIcon!.textContent = s.icon;
+        feedbackTitle!.className = `text-3xl font-bold ${s.text}`;
+        feedbackTitle!.textContent = title;
+
+        // Subtítulo muestra el nombre, si hay código lo muestra en tipografía monospace
+        feedbackSubtitle!.innerHTML = code
+            ? `<span class="block text-navy font-bold text-xl">${subtitle}</span><span class="font-mono text-sm text-text-muted">${code}</span>`
+            : `<span class="text-text-mid">${subtitle}</span>`;
+
+        if (state !== "idle") resetTimer = window.setTimeout(setIdle, 2500);
+    }
+
+    function setIdle() {
+        setFeedback(
+            "idle",
+            "Esperando credencial",
+            "Acerca la tarjeta al lector o usa el teclado",
+        );
+    }
+
+    function updateCount(add: number) {
+        const el = document.getElementById("kiosk-count");
+        if (el) el.textContent = String(Number(el.textContent) + add);
+    }
+</script>

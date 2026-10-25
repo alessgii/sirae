@@ -1,0 +1,164 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/sirae/Header.astro";
+---
+
+<Layout title="Crear Cuenta | SIRAE">
+  <Header />
+
+  <main class="relative flex min-h-[calc(100vh-5rem)] items-center justify-center px-4 py-12 md:px-10 bg-bg-main">
+    <div class="relative z-10 w-full max-w-xl rounded-custom border border-border-main bg-white p-6 sm:p-9 shadow-custom-lg animate-fade-in-up">
+      
+      <div class="mb-8 text-center">
+        <h1 class="font-poppins text-2xl font-bold tracking-tight text-navy sm:text-3xl">Alta de Personal</h1>
+        <p class="mt-2 text-sm text-text-muted">Configura tu perfil para operar el sistema SIRAE.</p>
+      </div>
+
+      <form id="registro-form" class="space-y-6">
+        <!-- SECCIÓN 1: Identidad Estudiantil -->
+        <div class="space-y-4">
+          <h2 class="text-xs font-bold tracking-wider text-turq-acc uppercase border-b border-border-lt pb-2">01. Identidad Universitaria</h2>
+
+          <div>
+            <label for="student_code" class="block font-semibold text-sm text-text-main mb-1.5">Código de estudiante</label>
+            <input type="text" id="student_code" name="student_code" required maxlength="9" pattern="[0-9]+" placeholder="219876543"
+              class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 font-mono text-sm text-navy transition-all focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20" />
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label for="first_name" class="block font-semibold text-sm text-text-main mb-1.5">Nombre(s)</label>
+              <input type="text" id="first_name" name="first_name" required placeholder="Ej. Stella"
+                class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 text-sm text-navy transition-all focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20" />
+            </div>
+            <div>
+              <label for="last_name" class="block font-semibold text-sm text-text-main mb-1.5">Apellido(s)</label>
+              <input type="text" id="last_name" name="last_name" required placeholder="Ej. Labs"
+                class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 text-sm text-navy transition-all focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20" />
+            </div>
+          </div>
+
+          <div>
+            <label for="username" class="block font-semibold text-sm text-text-main mb-1.5">Nombre de usuario</label>
+            <input type="text" id="username" name="username" required placeholder="stella66"
+              class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 font-mono text-sm text-navy transition-all focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20" />
+          </div>
+        </div>
+
+        <!-- SECCIÓN 2: Acceso y Credenciales -->
+        <div class="space-y-4 pt-2">
+          <h2 class="text-xs font-bold tracking-wider text-navy uppercase border-b border-border-lt pb-2">02. Credenciales y Acceso</h2>
+
+          <div>
+            <label for="email" class="block font-semibold text-sm text-text-main mb-1.5">Correo electrónico</label>
+            <input type="email" id="email" name="email" required placeholder="tu.nombre@alumnos.udg.mx"
+              class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 text-sm text-navy transition-all focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20" />
+          </div>
+
+          <div>
+            <label for="password" class="block font-semibold text-sm text-text-main mb-1.5">Contraseña</label>
+            <input type="password" id="password" name="password" required minlength="6" placeholder="••••••••••••"
+              class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 text-sm text-navy transition-all focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20" />
+          </div>
+        </div>
+
+        <button type="submit" id="btn-submit"
+          class="mt-6 flex w-full items-center justify-center gap-2 rounded-custom bg-navy py-3 font-poppins text-sm font-bold tracking-wide text-white transition-all hover:bg-navy-mid hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50">
+          <span id="btn-submit-spinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+          <span id="btn-submit-text">Completar Registro</span>
+        </button>
+
+        <p class="text-center text-sm text-text-muted">
+          ¿Ya tienes cuenta activa? <a href="/login" class="font-bold text-turq-acc hover:text-navy transition-colors">Inicia sesión</a>
+        </p>
+      </form>
+    </div>
+  </main>
+
+  <!-- MODAL DE RESPUESTA -->
+  <div id="registro-glass-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog">
+    <div id="registro-modal-backdrop" class="fixed inset-0 bg-navy/40 backdrop-blur-sm"></div>
+    <div class="relative z-10 w-full max-w-md rounded-custom border border-border-main bg-white p-7 shadow-custom-lg">
+      <div id="modal-icon-wrapper" class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full text-2xl font-bold"></div>
+      <h3 id="modal-title" class="text-center font-poppins text-xl font-bold text-navy"></h3>
+      <div id="modal-desc" class="mt-3 text-center text-sm text-text-muted"></div>
+      <div id="modal-actions" class="mt-6 flex flex-col gap-3"></div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { supabase } from "../lib/supabase";
+
+  const form = document.getElementById("registro-form") as HTMLFormElement;
+  const btn = document.getElementById("btn-submit") as HTMLButtonElement;
+  const btnText = document.getElementById("btn-submit-text") as HTMLSpanElement;
+  const btnSpinner = document.getElementById("btn-submit-spinner") as HTMLSpanElement;
+
+  const modal = document.getElementById("registro-glass-modal") as HTMLDivElement;
+  const iconWrapper = document.getElementById("modal-icon-wrapper") as HTMLDivElement;
+  const modalTitle = document.getElementById("modal-title") as HTMLHeadingElement;
+  const modalDesc = document.getElementById("modal-desc") as HTMLDivElement;
+  const modalActions = document.getElementById("modal-actions") as HTMLDivElement;
+
+  const showModal = (options: any) => {
+    modalTitle.textContent = options.title;
+    if (options.type === "error") {
+      iconWrapper.className = "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#fde8e8] text-[#c81e1e] text-2xl font-bold";
+      iconWrapper.textContent = "✕";
+      modalDesc.innerHTML = `<p>${options.description}</p>`;
+      modalActions.innerHTML = `<button type="button" id="btn-close-modal" class="w-full rounded-custom bg-bg-main py-2.5 font-bold text-text-mid hover:bg-border-lt">Entendido</button>`;
+    } else {
+      iconWrapper.className = "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-pale text-green text-2xl font-bold";
+      iconWrapper.textContent = "✓";
+      modalDesc.innerHTML = `<p>Hemos enviado un enlace de confirmación a: <br><strong class="text-navy">${options.emailTarget}</strong></p>`;
+      modalActions.innerHTML = `<a href="/login" class="w-full block text-center rounded-custom bg-navy py-2.5 font-bold text-white hover:bg-navy-mid">Ir a Iniciar Sesión</a>`;
+    }
+    
+    modal.classList.replace("hidden", "flex");
+    document.getElementById("btn-close-modal")?.addEventListener("click", () => modal.classList.replace("flex", "hidden"));
+  };
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    btn.disabled = true;
+    btnSpinner.classList.remove("hidden");
+    btnText.innerText = "Verificando...";
+
+    const formData = new FormData(form);
+    const email = String(formData.get("email")).trim().toLowerCase();
+    const username = String(formData.get("username")).trim().toLowerCase();
+    const student_code = String(formData.get("student_code")).trim();
+
+    try {
+      const { data: checks, error: rpcError } = await supabase.rpc("check_user_exists", {
+        p_username: username,
+        p_student_code: student_code,
+      });
+
+      if (checks?.username_exists || checks?.code_exists) {
+        showModal({ type: "error", title: "Datos en uso", description: "El usuario o código ya existen en la base de datos de StellaLabs." });
+        throw new Error("Duplicado");
+      }
+
+      const { error } = await supabase.auth.signUp({
+        email,
+        password: String(formData.get("password")),
+        options: {
+          data: { student_code, first_name: String(formData.get("first_name")), last_name: String(formData.get("last_name")), username }
+        },
+      });
+
+      if (error) throw error;
+
+      showModal({ type: "verificacion", title: "¡Verifica tu correo!", emailTarget: email });
+      form.reset();
+    } catch (err: any) {
+      if(err.message !== "Duplicado") showModal({ type: "error", title: "Error", description: err.message });
+    } finally {
+      btn.disabled = false;
+      btnSpinner.classList.add("hidden");
+      btnText.innerText = "Completar Registro";
+    }
+  });
+</script>

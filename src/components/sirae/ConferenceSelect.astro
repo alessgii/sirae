@@ -1,0 +1,125 @@
+---
+const { id } = Astro.props;
+---
+<section id={id} class="max-w-4xl mx-auto animate-fade-in-up">
+  <div class="mb-10 text-center">
+    <h1 class="text-4xl font-bold text-navy mb-4">Seleccionar Conferencia</h1>
+    <p class="text-text-mid text-lg">Elige un evento activo para iniciar el registro de asistencia.</p>
+  </div>
+
+  <div class="bg-white rounded-custom shadow-custom border border-border-main p-6">
+    <div id="conference-list" class="grid gap-4">
+      <p class="text-center py-8 text-text-muted">Cargando eventos...</p>
+    </div>
+    
+    <div class="mt-6 pt-6 border-t border-border-lt flex justify-between items-center">
+      <button id="btn-open-modal" class="text-navy font-semibold hover:text-navy-mid flex items-center gap-2 transition-colors">
+        <span class="bg-turq-pale text-turq-acc rounded-full size-8 flex items-center justify-center pointer-events-none">+</span> 
+        Crear nueva
+      </button>
+      
+      <!-- Atributo disabled explícito por defecto -->
+      <button id="btn-start-kiosk" disabled class="bg-navy text-white px-8 py-3 rounded-custom font-bold shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+        Iniciar Registro →
+      </button>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+  
+  let allConferences: any[] = [];
+  let selectedConference: any = null;
+  let timeCheckInterval: number;
+  
+  const listEl = document.getElementById("conference-list");
+  const section = document.getElementById("view-select");
+  const startBtn = document.getElementById("btn-start-kiosk") as HTMLButtonElement;
+
+  async function loadConferences() {
+    const { data, error } = await supabase.from("conferences_with_status").select("*").in("day_status", ["today", "upcoming"]);
+    
+    if (error) {
+      if (listEl) listEl.innerHTML = `<p class="text-center py-8 text-[#c81e1e] font-semibold">Error al cargar. Verifica tu conexión.</p>`;
+      return;
+    }
+
+    allConferences = data || [];
+    renderList();
+    
+    clearInterval(timeCheckInterval);
+    timeCheckInterval = window.setInterval(renderList, 30000);
+  }
+
+  function renderList() {
+    if (!listEl) return;
+    const now = Date.now();
+    const validConferences = allConferences.filter(c => new Date(c.register_ends_at).getTime() > now);
+
+    if (validConferences.length === 0) {
+      listEl.innerHTML = `<p class="text-center py-8 text-text-muted font-semibold">No hay eventos activos o próximos en este momento.</p>`;
+      if (startBtn) startBtn.disabled = true;
+      selectedConference = null;
+      return;
+    }
+
+    listEl.innerHTML = validConferences.map(c => {
+      const startTime = new Date(c.register_starts_at).getTime();
+      const isOpen = now >= startTime;
+      const isSelected = selectedConference?.conference_id === c.conference_id;
+
+      if (isSelected && !isOpen) {
+        selectedConference = null;
+        if (startBtn) startBtn.disabled = true;
+      }
+
+      const timeLabel = isOpen
+        ? `<span class="bg-green-pale text-green px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase">Abierto</span>`
+        : `<span class="bg-[#fff9e6] text-[#d48c00] px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase">Abre a las ${new Date(c.register_starts_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>`;
+
+      return `
+        <label class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-custom border-2 cursor-pointer transition-all 
+          ${isOpen ? 'hover:bg-bg-main' : 'opacity-60 cursor-not-allowed bg-white'}
+          ${isSelected && isOpen ? 'border-navy bg-bg-main' : 'border-border-lt'}">
+          
+          <input type="radio" name="conf" value="${c.conference_id}" class="sr-only" ${!isOpen ? 'disabled' : ''}>
+          
+          <div class="flex-1 min-w-0">
+            <h3 class="text-lg font-bold text-navy truncate">${c.conference_name}</h3>
+            <p class="text-text-muted text-sm truncate">${c.speaker_name} • ${c.conference_site}</p>
+          </div>
+          
+          <div class="shrink-0 flex items-center">
+            ${timeLabel}
+          </div>
+        </label>
+      `;
+    }).join("");
+
+    // Forzar deshabilitado si se repintó y no hay nada válido seleccionado
+    if (!selectedConference && startBtn) {
+      startBtn.disabled = true;
+    }
+
+    listEl.querySelectorAll('input').forEach(input => {
+      input.addEventListener('change', (e) => {
+        const id = Number((e.target as HTMLInputElement).value);
+        selectedConference = validConferences.find(x => x.conference_id === id);
+        if (startBtn) startBtn.disabled = false;
+        renderList();
+      });
+    });
+  }
+
+  startBtn?.addEventListener("click", () => {
+    if (selectedConference) {
+      document.dispatchEvent(new CustomEvent("sirae:start-kiosk", { detail: selectedConference }));
+      clearInterval(timeCheckInterval);
+    }
+  });
+
+  // Escuchar el aviso del orquestador en lugar de cargar automáticamente
+  window.addEventListener("sirae:auth-ready", loadConferences);
+  section?.addEventListener("select:refresh", loadConferences);
+</script>

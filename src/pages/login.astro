@@ -1,0 +1,106 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/sirae/Header.astro";
+---
+
+<Layout title="Iniciar Sesión | SIRAE">
+  <Header />
+
+  <main class="relative flex min-h-[calc(100vh-5rem)] items-center justify-center px-4 py-16 md:px-10 bg-bg-main">
+    <div class="relative z-10 w-full max-w-md rounded-custom border border-border-main bg-white p-6 shadow-custom-lg sm:p-8 animate-fade-in-up">
+      
+      <div class="mb-7 text-center">
+        <h1 class="font-poppins text-2xl font-bold tracking-tight text-navy sm:text-3xl">
+          Iniciar Sesión
+        </h1>
+        <p class="mt-2 text-sm text-text-muted">
+          Ingresa con tus credenciales de StellaLabs para administrar asistencias.
+        </p>
+      </div>
+
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label for="email" class="block font-semibold text-sm text-text-main mb-1.5">Correo electrónico</label>
+          <input type="email" id="email" name="email" required placeholder="alumno@alumnos.udg.mx"
+            class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 font-sans text-sm text-navy transition-all focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20" />
+        </div>
+
+        <div>
+          <label for="password" class="block font-semibold text-sm text-text-main mb-1.5">Contraseña</label>
+          <input type="password" id="password" name="password" required placeholder="••••••••"
+            class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 font-sans text-sm text-navy transition-all focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20" />
+        </div>
+
+        <button type="submit" id="btn-login"
+          class="mt-4 flex w-full items-center justify-center gap-2 rounded-custom bg-navy py-3 font-poppins text-sm font-bold tracking-wide text-white transition-all hover:bg-navy-mid hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60">
+          <span id="btn-login-spinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+          <span id="btn-login-text">Entrar al Sistema</span>
+        </button>
+
+        <p class="pt-4 text-center font-sans text-xs text-text-muted">
+          ¿No tienes cuenta?
+          <a href="/registro" class="font-bold text-turq-acc transition-colors hover:text-navy">Regístrate aquí</a>
+        </p>
+      </form>
+
+      <div class="mt-8 pt-4 border-t border-border-lt text-center flex items-center justify-center gap-2 text-xs font-semibold text-text-muted">
+        <span>Powered by</span>
+        <span class="text-navy">Stella<span class="text-turq-acc">Labs</span></span>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL DE ERROR -->
+  <div id="login-error-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog">
+    <div id="login-modal-backdrop" class="fixed inset-0 bg-navy/40 backdrop-blur-sm"></div>
+    <div class="relative z-10 w-full max-w-sm rounded-custom border border-[#e02424]/20 bg-white p-6 shadow-custom-lg transition-all">
+      <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#fde8e8] text-[#c81e1e]">
+        ✕
+      </div>
+      <h3 class="text-center font-poppins text-lg font-bold text-navy">Error de acceso</h3>
+      <p id="login-error-msg" class="mt-2 text-center text-sm text-text-muted">Credenciales incorrectas.</p>
+      <button id="btn-close-login-modal" type="button" class="mt-6 w-full rounded-custom bg-bg-main py-2.5 font-bold text-text-mid transition-all hover:bg-border-lt">
+        Entendido
+      </button>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { supabase } from "../lib/supabase";
+
+  // Lógica de UI idéntica al original
+  const form = document.getElementById("login-form") as HTMLFormElement;
+  const btn = document.getElementById("btn-login") as HTMLButtonElement;
+  const btnText = document.getElementById("btn-login-text") as HTMLSpanElement;
+  const btnSpinner = document.getElementById("btn-login-spinner") as HTMLSpanElement;
+  const modal = document.getElementById("login-error-modal") as HTMLDivElement;
+  const modalMsg = document.getElementById("login-error-msg") as HTMLParagraphElement;
+  
+  const closeModal = () => modal.classList.replace("flex", "hidden");
+  document.getElementById("btn-close-login-modal")?.addEventListener("click", closeModal);
+  document.getElementById("login-modal-backdrop")?.addEventListener("click", closeModal);
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    btn.disabled = true;
+    btnSpinner.classList.remove("hidden");
+    btnText.innerText = "Iniciando sesión...";
+
+    const formData = new FormData(form);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: String(formData.get("email")).trim(),
+        password: String(formData.get("password")),
+      });
+      if (error) throw error;
+      window.location.href = "/";
+    } catch (err: any) {
+      btn.disabled = false;
+      btnSpinner.classList.add("hidden");
+      btnText.innerText = "Entrar al Sistema";
+      modalMsg.textContent = err.message || "Verifica tus datos.";
+      modal.classList.replace("hidden", "flex");
+    }
+  });
+</script>

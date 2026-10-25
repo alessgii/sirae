@@ -1,0 +1,72 @@
+---
+// Importa tu layout. Ajusta la ruta dependiendo de tu estructura de carpetas
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Registro de Asistencia NFC">
+  <main class="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
+    <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-8">
+      Lector de Credenciales CUCSur
+    </h1>
+    
+    <button 
+      id="btnEscanear" 
+      class="px-8 py-3 text-lg font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+    >
+      Activar Lector NFC
+    </button>
+    
+    <div 
+      id="resultado" 
+      class="mt-8 text-2xl font-mono text-emerald-600 dark:text-emerald-400 font-medium"
+    >
+      Esperando...
+    </div>
+  </main>
+</Layout>
+
+<script>
+  // En Astro, los scripts se ejecutan del lado del cliente por defecto.
+  // Envolvemos la lógica para asegurarnos de que el DOM esté listo.
+  const initNFC = () => {
+    const btnEscanear = document.getElementById('btnEscanear');
+    const resultado = document.getElementById('resultado');
+
+    if (!btnEscanear || !resultado) return;
+
+    btnEscanear.addEventListener('click', async () => {
+      // Validamos soporte en el navegador
+      if (!("NDEFReader" in window)) {
+        resultado.innerText = "Error: Web NFC no soportado en Chrome iOS o tu navegador actual.";
+        return;
+      }
+
+      try {
+        // @ts-ignore - TS a veces no reconoce NDEFReader sin configuraciones adicionales
+        const ndef = new window.NDEFReader();
+        await ndef.scan();
+        resultado.innerText = "Acerca la credencial al celular...";
+
+        // Escucha el evento cada vez que pasa una tarjeta
+        ndef.addEventListener("reading", ({ serialNumber }) => {
+          // El serialNumber (UID) normalmente viene separado por dos puntos
+          const uid = serialNumber.toUpperCase();
+          resultado.innerText = `UID Registrado: ${uid}`;
+          
+          // Aquí puedes hacer tu fetch a tu API de FastAPI o directamente a Supabase
+          console.log("Enviando a BD el UID:", uid);
+        });
+        
+      } catch (error) {
+        resultado.innerText = `Error: ${error.message}`;
+        console.error("Error NFC:", error);
+      }
+    });
+  };
+
+  // Ejecutamos la inicialización
+  initNFC();
+
+  // Si estás usando View Transitions de Astro, asegúrate de re-ejecutar el script al cambiar de página
+  document.addEventListener('astro:page-load', initNFC);
+</script>

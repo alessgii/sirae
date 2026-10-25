@@ -1,0 +1,108 @@
+---
+---
+
+<header class="sticky top-0 z-40 w-full border-b border-border-main bg-white shadow-sm transition-colors duration-200">
+  <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-3 md:px-8">
+    
+    <a href="/" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
+      <div class="size-9 rounded-lg bg-navy flex items-center justify-center text-white font-bold text-xl shadow-md">
+        <img src="/favicon.svg" alt="">
+      </div>
+      <div>
+        <h1 class="font-poppins text-lg font-bold text-navy tracking-tight leading-none">SIRAE</h1>
+        <p class="text-[10px] font-semibo mt-0.5 tracking-widest text-text-muted">Powered by StellaLabs</p>
+      </div>
+    </a>
+    <!-- Auth Slot -->
+    <div class="flex items-center gap-3">
+      <div id="auth-slot-desktop" class="relative flex items-center min-w-[120px] justify-end">
+        
+        <!-- Botón de Login -->
+        <a href="/login" id="btn-login-desktop"
+          class="inline-flex items-center justify-center rounded-custom border border-border-main bg-bg-main px-5 py-2 font-poppins text-sm font-bold text-text-main transition-all hover:bg-border-lt hover:text-navy focus:outline-none">
+          Iniciar sesión
+        </a>
+
+        <!-- Contenedor del Avatar -->
+        <div id="user-menu-desktop" class="hidden relative items-center">
+          <button id="avatar-btn-desktop" type="button"
+            class="flex items-center rounded-full border-2 border-border-main bg-bg-main p-0.5 transition-all hover:border-turq-acc focus:outline-none">
+            <img id="avatar-img-desktop" src="" alt="Avatar" class="h-8 w-8 rounded-full bg-white object-cover" />
+          </button>
+
+          <!-- Menú desplegable -->
+          <div id="user-dropdown" class="invisible absolute right-0 top-full mt-2 w-56 rounded-custom border border-border-main bg-white p-2 opacity-0 shadow-custom-lg transition-all duration-150">
+            <div class="border-b border-border-lt px-3 py-3">
+              <p id="user-display-name" class="truncate font-poppins text-sm font-bold text-navy"></p>
+              <div class="mt-1 flex items-center justify-between gap-1.5">
+                <span id="user-display-code" class="truncate font-mono text-[10px] font-semibold text-text-muted"></span>
+                <span id="user-display-role" class="rounded-full bg-turq-pale px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-turq-acc"></span>
+              </div>
+            </div>
+
+            <button id="btn-logout-desktop" type="button" class="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-sans text-xs font-bold text-[#c81e1e] transition-colors hover:bg-[#fde8e8]">
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+
+  const btnLoginDesktop = document.getElementById("btn-login-desktop");
+  const userMenuDesktop = document.getElementById("user-menu-desktop");
+  const avatarBtnDesktop = document.getElementById("avatar-btn-desktop");
+  const avatarImgDesktop = document.getElementById("avatar-img-desktop") as HTMLImageElement;
+  const userDropdown = document.getElementById("user-dropdown");
+  const userDisplayName = document.getElementById("user-display-name");
+  const userDisplayCode = document.getElementById("user-display-code");
+  const userDisplayRole = document.getElementById("user-display-role");
+  const btnLogoutDesktop = document.getElementById("btn-logout-desktop");
+
+  const getAvatarUrl = (seed: string) => `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(seed)}&backgroundColor=e8f1fb`;
+
+  avatarBtnDesktop?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    userDropdown?.classList.toggle("invisible");
+    userDropdown?.classList.toggle("opacity-0");
+  });
+  document.addEventListener("click", () => userDropdown?.classList.add("invisible", "opacity-0"));
+
+  const showUserAuth = async (user: any) => {
+    const { data: profile } = await supabase.from("profiles").select("role, student_code, username").eq("id", user.id).single();
+    
+    if (btnLoginDesktop) btnLoginDesktop.style.display = "none";
+    if (userMenuDesktop) {
+      userMenuDesktop.classList.remove("hidden");
+      userMenuDesktop.style.display = "flex";
+    }
+
+    const username = profile?.username || user.email?.split("@")[0] || "User";
+    if (avatarImgDesktop) avatarImgDesktop.src = getAvatarUrl(username);
+    if (userDisplayName) userDisplayName.textContent = `@${username}`;
+    if (userDisplayCode) userDisplayCode.textContent = profile?.student_code || "";
+    if (userDisplayRole) userDisplayRole.textContent = profile?.role || "student";
+  };
+
+  const showGuestAuth = () => {
+    if (btnLoginDesktop) btnLoginDesktop.style.display = "";
+    if (userMenuDesktop) userMenuDesktop.style.display = "none";
+  };
+
+  const syncAuthState = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    session?.user ? await showUserAuth(session.user) : showGuestAuth();
+  };
+
+  btnLogoutDesktop?.addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  });
+
+  supabase.auth.onAuthStateChange((_event, session) => session?.user ? showUserAuth(session.user) : showGuestAuth());
+  syncAuthState();
+</script>

@@ -1,0 +1,55 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/sirae/Header.astro";
+---
+
+<Layout title="Acceso Denegado | SIRAE">
+  <Header />
+
+  <main class="relative flex min-h-[calc(100vh-5rem)] items-center justify-center px-4 py-16 md:px-10 bg-bg-main">
+    <div class="relative z-10 w-full max-w-lg rounded-custom border border-border-main bg-white p-8 shadow-custom-lg animate-fade-in-up text-center">
+      
+      <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#fde8e8] text-[#c81e1e] border-4 border-white shadow-md">
+        <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+
+      <h1 class="font-poppins text-2xl font-bold tracking-tight text-navy sm:text-3xl">
+        Acceso Restringido
+      </h1>
+      <p id="reason" class="mt-3 text-base text-text-muted">
+        Validando estado de la cuenta...
+      </p>
+
+      <div class="mt-8 flex justify-center">
+        <a id="login-btn" href="/login" hidden
+          class="inline-flex items-center justify-center rounded-custom bg-navy px-8 py-3 font-poppins text-sm font-bold text-white transition-all hover:bg-navy-mid hover:shadow-md">
+          Ir a Iniciar Sesión
+        </a>
+      </div>
+
+      <div class="mt-8 pt-6 border-t border-border-lt">
+        <p class="text-xs text-text-muted">
+          Este módulo es exclusivo para administradores y organizadores de eventos académicos.
+        </p>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const motivo = params.get("motivo");
+  const reasonEl = document.getElementById("reason");
+  const loginBtn = document.getElementById("login-btn") as HTMLAnchorElement;
+
+  if (motivo === "sesion" && reasonEl && loginBtn) {
+    reasonEl.textContent = "No se detectó una sesión activa. Por favor, identifícate.";
+    loginBtn.hidden = false;
+  } else if (motivo === "rol" && reasonEl) {
+    reasonEl.textContent = "Tu cuenta actual no cuenta con los permisos necesarios para operar el registro de asistencia.";
+  } else if (reasonEl) {
+    reasonEl.textContent = "No tienes permiso para ver esta página.";
+  }
+</script>

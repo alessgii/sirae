@@ -1,11 +1,78 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/sirae/Header.astro";
+import ConferenceSelect from "../components/sirae/ConferenceSelect.astro";
+import ScannerKiosk from "../components/sirae/ScannerKiosk.astro";
+import CreateConferenceModal from "../components/sirae/CreateConferenceModal.astro";
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="SIRAE | Registro de Asistencia">
+  <div id="auth-loader" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg-main">
+    <div class="size-12 animate-spin rounded-full border-4 border-border-main border-t-navy mb-4"></div>
+    <p class="font-poppins text-sm font-bold text-text-muted animate-pulse">Verificando accesos...</p>
+  </div>
+
+  <div id="app-content" class="min-h-screen bg-bg-main text-text-main font-poppins selection:bg-turq-acc/30 hidden">
+    <Header />
+    
+    <main class="relative z-10 mx-auto max-w-6xl px-6 py-10 md:px-10">
+      <ConferenceSelect id="view-select" />
+      <ScannerKiosk id="view-register" hidden />
+    </main>
+
+    <CreateConferenceModal />
+  </div>
 </Layout>
+
+<script>
+  import { supabase } from "../lib/supabase";
+
+  // Orquestador de vistas simple
+  const viewSelect = document.getElementById("view-select");
+  const viewRegister = document.getElementById("view-register");
+
+  document.addEventListener("sirae:start-kiosk", ((e: CustomEvent) => {
+    if(viewSelect) viewSelect.hidden = true;
+    if(viewRegister) {
+      viewRegister.hidden = false;
+      viewRegister.dispatchEvent(new CustomEvent("kiosk:init", { detail: e.detail }));
+    }
+  }) as EventListener);
+
+  document.addEventListener("sirae:end-kiosk", () => {
+    if(viewRegister) viewRegister.hidden = true;
+    if(viewSelect) {
+      viewSelect.hidden = false;
+      viewSelect.dispatchEvent(new Event("select:refresh"));
+    }
+  });
+
+  async function checkAccess() {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      window.location.replace("/acceso-denegado?motivo=sesion");
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", session.user.id)
+      .single();
+
+    if (!profile || !['admin', 'organizer'].includes(profile.role)) {
+      window.location.replace("/acceso-denegado?motivo=rol");
+      return;
+    }
+
+    // Permiso concedido
+    document.getElementById("auth-loader")?.remove();
+    document.getElementById("app-content")?.classList.remove("hidden");
+    
+    // NUEVO: Avisar a los componentes que ya pueden consultar la BD con seguridad
+    window.dispatchEvent(new Event("sirae:auth-ready"));
+  }
+
+  checkAccess();
+</script>
