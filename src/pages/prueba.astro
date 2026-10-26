@@ -1,72 +1,137 @@
 ---
-// Importa tu layout. Ajusta la ruta dependiendo de tu estructura de carpetas
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Registro de Asistencia NFC">
-  <main class="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
-    <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-8">
-      Lector de Credenciales CUCSur
-    </h1>
-    
-    <button 
-      id="btnEscanear" 
-      class="px-8 py-3 text-lg font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-md"
-    >
-      Activar Lector NFC
-    </button>
-    
-    <div 
-      id="resultado" 
-      class="mt-8 text-2xl font-mono text-emerald-600 dark:text-emerald-400 font-medium"
-    >
-      Esperando...
+<Layout title="Lector NFC | SIRAE">
+  <main class="flex min-h-[calc(100vh-5rem)] items-center justify-center bg-bg-main p-6">
+    <div class="w-full max-w-sm rounded-custom border border-border-main bg-white p-8 shadow-custom-lg text-center animate-fade-in-up">
+      
+      <!-- Icono de Estado -->
+      <div id="nfc-icon-container" class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-turq-pale text-turq-acc transition-all duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 10a10 10 0 0 1 16 0" />
+          <path d="M7 14a5 5 0 0 1 10 0" />
+          <path d="M10 18a2 2 0 0 1 4 0" />
+        </svg>
+      </div>
+      
+      <h1 class="font-poppins text-2xl font-bold text-navy">Lector NFC</h1>
+      <p id="nfc-status-text" class="mt-2 text-sm text-text-muted">
+        Presiona el botón para habilitar el escáner del celular.
+      </p>
+      
+      <!-- Caja de Resultados -->
+      <div id="result-box" class="mt-6 hidden rounded-custom border border-border-main bg-bg-main p-4 transition-all duration-300">
+        <p id="result-name" class="font-poppins text-lg font-bold text-navy"></p>
+        <div class="mt-2 flex items-center justify-center gap-2">
+          <span class="rounded-full bg-border-main px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-text-muted">UID</span>
+          <span id="result-uid" class="font-mono text-xs text-text-mid"></span>
+        </div>
+      </div>
+      
+      <!-- Botón de Acción -->
+      <button id="btnEscanear" class="mt-8 w-full rounded-custom bg-navy py-3 font-poppins text-sm font-bold text-white shadow-md transition-all hover:bg-navy-mid hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-navy/50 disabled:opacity-50 disabled:cursor-not-allowed">
+        Activar Escáner
+      </button>
+
     </div>
   </main>
 </Layout>
 
 <script>
-  // En Astro, los scripts se ejecutan del lado del cliente por defecto.
-  // Envolvemos la lógica para asegurarnos de que el DOM esté listo.
-  const initNFC = () => {
-    const btnEscanear = document.getElementById('btnEscanear');
-    const resultado = document.getElementById('resultado');
+  import { supabase } from '../lib/supabase';
 
-    if (!btnEscanear || !resultado) return;
+  const initNFC = () => {
+    const btnEscanear = document.getElementById('btnEscanear') as HTMLButtonElement;
+    const statusText = document.getElementById('nfc-status-text') as HTMLParagraphElement;
+    const iconContainer = document.getElementById('nfc-icon-container') as HTMLDivElement;
+    const resultBox = document.getElementById('result-box') as HTMLDivElement;
+    const resultName = document.getElementById('result-name') as HTMLParagraphElement;
+    const resultUid = document.getElementById('result-uid') as HTMLSpanElement;
+
+    if (!btnEscanear) return;
 
     btnEscanear.addEventListener('click', async () => {
-      // Validamos soporte en el navegador
+      // 1. Validar soporte de Hardware / Navegador
       if (!("NDEFReader" in window)) {
-        resultado.innerText = "Error: Web NFC no soportado en Chrome iOS o tu navegador actual.";
+        iconContainer.className = "mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-[#fde8e8] text-[#c81e1e]";
+        statusText.innerText = "NFC no soportado. Usa Chrome en Android.";
         return;
       }
 
       try {
-        // @ts-ignore - TS a veces no reconoce NDEFReader sin configuraciones adicionales
+        // @ts-ignore - Web NFC API
         const ndef = new window.NDEFReader();
         await ndef.scan();
-        resultado.innerText = "Acerca la credencial al celular...";
+        
+        // 2. Estado: Escaneando
+        iconContainer.className = "mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-turq-pale text-turq-acc animate-pulse shadow-[0_0_25px_rgba(0,174,204,0.3)]";
+        statusText.innerText = "Acerca la credencial a la parte trasera del celular...";
+        btnEscanear.innerText = "Lector Activo";
+        btnEscanear.disabled = true;
+        resultBox.classList.add("hidden");
 
-        // Escucha el evento cada vez que pasa una tarjeta
-        ndef.addEventListener("reading", ({ serialNumber }) => {
-          // El serialNumber (UID) normalmente viene separado por dos puntos
-          const uid = serialNumber.toUpperCase();
-          resultado.innerText = `UID Registrado: ${uid}`;
+        // 3. Evento: Lectura detectada
+        ndef.addEventListener("reading", async ({ serialNumber }: { serialNumber: string }) => {
+          const uid = serialNumber;
           
-          // Aquí puedes hacer tu fetch a tu API de FastAPI o directamente a Supabase
-          console.log("Enviando a BD el UID:", uid);
+          statusText.innerText = "Consultando base de datos...";
+          iconContainer.classList.remove("animate-pulse");
+          
+          try {
+            // A. Buscar el UID en nfc_credentials para sacar el student_code
+            const { data: nfcData, error: nfcError } = await supabase
+              .from('nfc_credentials')
+              .select('student_code')
+              .eq('nfc_code', uid)
+              .single();
+              
+            if (nfcError || !nfcData) throw new Error("Credencial no vinculada");
+            
+            // B. Buscar el nombre en profiles usando el student_code
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('first_name, last_name')
+              .eq('student_code', nfcData.student_code)
+              .single();
+              
+            const fullName = profile 
+              ? `${profile.first_name} ${profile.last_name}`.trim() 
+              : `Alumno: ${nfcData.student_code}`;
+            
+            // ÉXITO: Mostrar datos
+            iconContainer.className = "mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green-pale text-green shadow-md";
+            statusText.innerText = "¡Identidad verificada!";
+            resultName.innerText = fullName;
+            resultUid.innerText = uid;
+            resultBox.classList.remove("hidden");
+            
+          } catch (err) {
+            // ERROR: UID no existe
+            iconContainer.className = "mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-[#fde8e8] text-[#c81e1e] shadow-md";
+            statusText.innerText = "Credencial desconocida o no asignada.";
+            resultName.innerText = "No Registrado";
+            resultUid.innerText = uid;
+            resultBox.classList.remove("hidden");
+          }
+
+          // Reactivar lectura tras 3 segundos
+          setTimeout(() => {
+            iconContainer.className = "mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-turq-pale text-turq-acc animate-pulse shadow-[0_0_25px_rgba(0,174,204,0.3)]";
+            statusText.innerText = "Acerca otra credencial...";
+            resultBox.classList.add("hidden");
+          }, 3000);
         });
         
       } catch (error) {
-        resultado.innerText = `Error: ${error.message}`;
-        console.error("Error NFC:", error);
+        iconContainer.className = "mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-[#fde8e8] text-[#c81e1e]";
+        statusText.innerText = "Error al iniciar el hardware NFC o permiso denegado.";
+        btnEscanear.disabled = false;
+        btnEscanear.innerText = "Reintentar";
       }
     });
   };
 
-  // Ejecutamos la inicialización
   initNFC();
-
-  // Si estás usando View Transitions de Astro, asegúrate de re-ejecutar el script al cambiar de página
   document.addEventListener('astro:page-load', initNFC);
 </script>
