@@ -4,8 +4,12 @@ const { id, hidden } = Astro.props;
 
 <section id={id} hidden={hidden} class="mx-auto max-w-4xl animate-fade-in-up">
   <div class="mb-8 text-center sm:mb-10">
-    <h1 class="mb-3 text-3xl font-bold text-navy sm:text-4xl">¿Qué quieres hacer?</h1>
-    <p class="text-base text-text-mid sm:text-lg">Selecciona una opción para continuar.</p>
+    <h1 class="mb-3 text-3xl font-bold text-navy sm:text-4xl">
+      ¿Qué quieres hacer?
+    </h1>
+    <p class="text-base text-text-mid sm:text-lg">
+      Selecciona una opción para continuar.
+    </p>
   </div>
 
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
@@ -15,17 +19,35 @@ const { id, hidden } = Astro.props;
       type="button"
       class="group flex flex-col items-start gap-4 rounded-custom border-2 border-border-main bg-white p-6 text-left shadow-custom transition-all hover:-translate-y-0.5 hover:border-navy hover:shadow-custom-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-turq-acc/50"
     >
-      <span class="flex size-12 items-center justify-center rounded-full bg-turq-pale text-turq-acc">
-        <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <span
+        class="flex size-12 items-center justify-center rounded-full bg-turq-pale text-turq-acc"
+      >
+        <svg
+          class="size-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
           <rect x="5" y="3" width="14" height="18" rx="2"></rect>
           <path d="m9 12 2 2 4-4"></path>
         </svg>
       </span>
       <span>
-        <span class="block text-xl font-bold text-navy">Registrar asistencias</span>
-        <span class="mt-1 block text-sm text-text-muted">Abre el kiosko para escanear credenciales o capturar códigos.</span>
+        <span class="block text-xl font-bold text-navy"
+          >Registrar asistencias</span
+        >
+        <span class="mt-1 block text-sm text-text-muted"
+          >Abre el kiosko para escanear credenciales o capturar códigos.</span
+        >
       </span>
-      <span class="mt-auto text-sm font-bold text-navy transition-transform group-hover:translate-x-1">Continuar →</span>
+      <span
+        class="mt-auto text-sm font-bold text-navy transition-transform group-hover:translate-x-1"
+        >Continuar →</span
+      >
     </button>
 
     <!-- Generar constancias (pendiente) -->
@@ -35,24 +57,63 @@ const { id, hidden } = Astro.props;
       aria-disabled="true"
       class="flex cursor-not-allowed flex-col items-start gap-4 rounded-custom border-2 border-border-lt bg-white p-6 text-left opacity-60"
     >
-      <span class="flex size-12 items-center justify-center rounded-full bg-bg-main text-text-muted">
-        <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path>
+      <span
+        class="flex size-12 items-center justify-center rounded-full bg-bg-main text-text-muted"
+      >
+        <svg
+          class="size-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"
+          ></path>
           <path d="M14 3v5h5"></path>
           <path d="M9 13h6M9 17h4"></path>
         </svg>
       </span>
       <span>
-        <span class="block text-xl font-bold text-text-mid">Generar constancias</span>
-        <span class="mt-1 block text-sm text-text-muted">Emite las constancias a partir de las asistencias registradas.</span>
+        <span class="block text-xl font-bold text-text-mid"
+          >Generar constancias</span
+        >
+        <span class="mt-1 block text-sm text-text-muted"
+          >Emite las constancias a partir de las asistencias registradas.</span
+        >
       </span>
-      <span class="mt-auto rounded-full bg-bg-main px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-text-muted">Próximamente</span>
+      <span
+        class="mt-auto rounded-full bg-bg-main px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-text-muted"
+        >Próximamente</span
+      >
+    </button>
+
+    <!-- Prueba de la base de datos desde el celular -->
+    <button
+      type="button"
+      aria-disabled="true"
+      class="flex flex-col items-start gap-4 rounded-custom border-2 border-border-lt bg-white p-6 text-left"
+    >
+      <a href="/prueba">
+        <span>
+          <span class="block text-xl font-bold text-navy"
+            >Probar base de datos</span
+          >
+          <span class="mt-1 block text-sm text-text-muted"
+            >Usa el lector NFC del celular para probar la base de datos.</span
+          >
+        </span>
+      </a>
     </button>
   </div>
 </section>
 
 <script>
   document.getElementById("btn-go-register")?.addEventListener("click", () => {
-    document.dispatchEvent(new CustomEvent("sirae:navigate", { detail: { view: "select" } }));
+    document.dispatchEvent(
+      new CustomEvent("sirae:navigate", { detail: { view: "select" } }),
+    );
   });
 </script>
