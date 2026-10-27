@@ -1,25 +1,42 @@
 ---
-const { id } = Astro.props;
+const { id, hidden } = Astro.props;
 ---
-<section id={id} class="max-w-4xl mx-auto animate-fade-in-up">
-  <div class="mb-10 text-center">
-    <h1 class="text-4xl font-bold text-navy mb-4">Seleccionar Conferencia</h1>
-    <p class="text-text-mid text-lg">Elige un evento activo para iniciar el registro de asistencia.</p>
+
+<section id={id} hidden={hidden} class="mx-auto max-w-4xl animate-fade-in-up">
+  <button
+    id="btn-back-menu"
+    type="button"
+    class="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-text-mid transition-colors hover:text-navy"
+  >
+    <span aria-hidden="true">←</span> Menú
+  </button>
+
+  <div class="mb-8 text-center sm:mb-10">
+    <h1 class="mb-3 text-3xl font-bold text-navy sm:text-4xl">Seleccionar Conferencia</h1>
+    <p class="text-base text-text-mid sm:text-lg">Elige un evento activo para iniciar el registro de asistencia.</p>
   </div>
 
-  <div class="bg-white rounded-custom shadow-custom border border-border-main p-6">
-    <div id="conference-list" class="grid gap-4">
-      <p class="text-center py-8 text-text-muted">Cargando eventos...</p>
+  <div class="rounded-custom border border-border-main bg-white p-4 shadow-custom sm:p-6">
+    <div id="conference-list" class="grid grid-cols-1 gap-3">
+      <p class="py-8 text-center text-text-muted">Cargando eventos...</p>
     </div>
-    
-    <div class="mt-6 pt-6 border-t border-border-lt flex justify-between items-center">
-      <button id="btn-open-modal" class="text-navy font-semibold hover:text-navy-mid flex items-center gap-2 transition-colors">
-        <span class="bg-turq-pale text-turq-acc rounded-full size-8 flex items-center justify-center pointer-events-none">+</span> 
+
+    <div class="mt-6 flex flex-col-reverse gap-4 border-t border-border-lt pt-6 sm:flex-row sm:items-center sm:justify-between">
+      <button
+        id="btn-open-modal"
+        type="button"
+        class="flex items-center justify-center gap-2 font-semibold text-navy transition-colors hover:text-navy-mid sm:justify-start"
+      >
+        <span class="pointer-events-none flex size-8 items-center justify-center rounded-full bg-turq-pale text-turq-acc">+</span>
         Crear nueva
       </button>
-      
-      <!-- Atributo disabled explícito por defecto -->
-      <button id="btn-start-kiosk" disabled class="bg-navy text-white px-8 py-3 rounded-custom font-bold shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+
+      <button
+        id="btn-start-kiosk"
+        type="button"
+        disabled
+        class="w-full rounded-custom bg-navy px-8 py-3 font-bold text-white shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+      >
         Iniciar Registro →
       </button>
     </div>
@@ -28,98 +45,136 @@ const { id } = Astro.props;
 
 <script>
   import { supabase } from "../../lib/supabase";
-  
+
   let allConferences: any[] = [];
-  let selectedConference: any = null;
+  let selectedId: string | null = null;
   let timeCheckInterval: number;
-  
+
   const listEl = document.getElementById("conference-list");
   const section = document.getElementById("view-select");
   const startBtn = document.getElementById("btn-start-kiosk") as HTMLButtonElement;
 
+  // ---------- Utilidades ----------
+  const esc = (s: unknown) =>
+    String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  // Días de calendario entre hoy y la fecha dada (0 = hoy, 1 = mañana, ...)
+  const dayDiff = (d: Date, now: number) => Math.round((startOfDay(d) - startOfDay(new Date(now))) / 86_400_000);
+
+  const fmtTime = (d: Date) => d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: false });
+  const fmtDate = (d: Date) =>
+    d.toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" }).replace(/\./g, "");
+
+  const BADGE = "inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest";
+
+  function badgeFor(c: any, now: number, isOpen: boolean) {
+    if (isOpen) return `<span class="${BADGE} bg-green-pale text-green">Abierto</span>`;
+
+    const opensAt = new Date(c.register_starts_at);
+    const diff = dayDiff(opensAt, now);
+
+    if (diff <= 0) return `<span class="${BADGE} bg-[#fff9e6] text-[#d48c00]">Abre hoy · ${fmtTime(opensAt)}</span>`;
+    if (diff === 1) return `<span class="${BADGE} bg-turq-pale text-navy">Abre mañana · ${fmtTime(opensAt)}</span>`;
+    return `<span class="${BADGE} bg-turq-pale text-navy">Comienza en ${diff} días</span>`;
+  }
+
+  function cardFor(c: any, now: number, isOpen: boolean) {
+    const starts = new Date(c.conference_starts_at);
+    const ends = new Date(c.conference_ends_at);
+    const isSelected = isOpen && selectedId === String(c.conference_id);
+
+    const base = "relative flex min-w-0 flex-col gap-3 rounded-custom border-2 p-4 transition-all sm:flex-row sm:items-center sm:justify-between sm:gap-4";
+    const state = isOpen
+      ? "cursor-pointer border-border-lt hover:bg-bg-main has-[:checked]:border-navy has-[:checked]:bg-bg-main has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-turq-acc/40"
+      : "cursor-not-allowed border-border-lt bg-white opacity-70";
+
+    return `
+      <label class="${base} ${state}">
+        <input type="radio" name="conf" value="${esc(c.conference_id)}" class="sr-only" ${isSelected ? "checked" : ""} ${isOpen ? "" : "disabled"}>
+
+        <div class="min-w-0 flex-1">
+          <h3 class="line-clamp-2 break-words text-base font-bold text-navy sm:text-lg">${esc(c.conference_name)}</h3>
+          <p class="mt-0.5 break-words text-sm text-text-muted">${esc(c.speaker_name)} • ${esc(c.conference_site)}</p>
+          <p class="mt-1 text-xs font-semibold capitalize text-text-mid">${fmtDate(starts)} · ${fmtTime(starts)} – ${fmtTime(ends)}</p>
+        </div>
+
+        <div class="flex shrink-0 items-center">${badgeFor(c, now, isOpen)}</div>
+      </label>
+    `;
+  }
+
+  const groupTitle = (t: string) =>
+    `<p class="px-1 pt-2 text-[11px] font-bold uppercase tracking-widest text-text-muted first:pt-0">${t}</p>`;
+
+  // ---------- Datos ----------
   async function loadConferences() {
-    const { data, error } = await supabase.from("conferences_with_status").select("*").in("day_status", ["today", "upcoming"]);
-    
+    const { data, error } = await supabase
+      .from("conferences_with_status")
+      .select("*")
+      .in("day_status", ["today", "upcoming"]);
+
     if (error) {
-      if (listEl) listEl.innerHTML = `<p class="text-center py-8 text-[#c81e1e] font-semibold">Error al cargar. Verifica tu conexión.</p>`;
+      if (listEl) listEl.innerHTML = `<p class="py-8 text-center font-semibold text-[#c81e1e]">Error al cargar. Verifica tu conexión.</p>`;
       return;
     }
 
     allConferences = data || [];
     renderList();
-    
+
     clearInterval(timeCheckInterval);
     timeCheckInterval = window.setInterval(renderList, 30000);
   }
 
+  // ---------- Render ----------
   function renderList() {
     if (!listEl) return;
     const now = Date.now();
-    const validConferences = allConferences.filter(c => new Date(c.register_ends_at).getTime() > now);
 
-    if (validConferences.length === 0) {
-      listEl.innerHTML = `<p class="text-center py-8 text-text-muted font-semibold">No hay eventos activos o próximos en este momento.</p>`;
-      if (startBtn) startBtn.disabled = true;
-      selectedConference = null;
+    const valid = allConferences.filter((c) => new Date(c.register_ends_at).getTime() > now);
+
+    if (valid.length === 0) {
+      listEl.innerHTML = `<p class="py-8 text-center font-semibold text-text-muted">No hay eventos activos o próximos. Crea uno con el botón de abajo.</p>`;
+      selectedId = null;
+      startBtn.disabled = true;
       return;
     }
 
-    listEl.innerHTML = validConferences.map(c => {
-      const startTime = new Date(c.register_starts_at).getTime();
-      const isOpen = now >= startTime;
-      const isSelected = selectedConference?.conference_id === c.conference_id;
+    const open = valid
+      .filter((c) => now >= new Date(c.register_starts_at).getTime())
+      .sort((a, b) => +new Date(a.conference_starts_at) - +new Date(b.conference_starts_at));
+    const upcoming = valid
+      .filter((c) => now < new Date(c.register_starts_at).getTime())
+      .sort((a, b) => +new Date(a.register_starts_at) - +new Date(b.register_starts_at));
 
-      if (isSelected && !isOpen) {
-        selectedConference = null;
-        if (startBtn) startBtn.disabled = true;
-      }
+    // Si la conferencia seleccionada ya no está abierta, limpiar selección
+    if (selectedId && !open.some((c) => String(c.conference_id) === selectedId)) selectedId = null;
+    startBtn.disabled = !selectedId;
 
-      const timeLabel = isOpen
-        ? `<span class="bg-green-pale text-green px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase">Abierto</span>`
-        : `<span class="bg-[#fff9e6] text-[#d48c00] px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase">Abre a las ${new Date(c.register_starts_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>`;
-
-      return `
-        <label class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-custom border-2 cursor-pointer transition-all 
-          ${isOpen ? 'hover:bg-bg-main' : 'opacity-60 cursor-not-allowed bg-white'}
-          ${isSelected && isOpen ? 'border-navy bg-bg-main' : 'border-border-lt'}">
-          
-          <input type="radio" name="conf" value="${c.conference_id}" class="sr-only" ${!isOpen ? 'disabled' : ''}>
-          
-          <div class="flex-1 min-w-0">
-            <h3 class="text-lg font-bold text-navy truncate">${c.conference_name}</h3>
-            <p class="text-text-muted text-sm truncate">${c.speaker_name} • ${c.conference_site}</p>
-          </div>
-          
-          <div class="shrink-0 flex items-center">
-            ${timeLabel}
-          </div>
-        </label>
-      `;
-    }).join("");
-
-    // Forzar deshabilitado si se repintó y no hay nada válido seleccionado
-    if (!selectedConference && startBtn) {
-      startBtn.disabled = true;
-    }
-
-    listEl.querySelectorAll('input').forEach(input => {
-      input.addEventListener('change', (e) => {
-        const id = Number((e.target as HTMLInputElement).value);
-        selectedConference = validConferences.find(x => x.conference_id === id);
-        if (startBtn) startBtn.disabled = false;
-        renderList();
-      });
-    });
+    listEl.innerHTML =
+      (open.length ? groupTitle("Disponibles ahora") + open.map((c) => cardFor(c, now, true)).join("") : "") +
+      (upcoming.length ? groupTitle("Próximas") + upcoming.map((c) => cardFor(c, now, false)).join("") : "");
   }
 
-  startBtn?.addEventListener("click", () => {
-    if (selectedConference) {
-      document.dispatchEvent(new CustomEvent("sirae:start-kiosk", { detail: selectedConference }));
-      clearInterval(timeCheckInterval);
-    }
+  // Delegación: un solo listener, no se re-renderiza al seleccionar
+  listEl?.addEventListener("change", (e) => {
+    const input = e.target as HTMLInputElement;
+    if (input?.name !== "conf") return;
+    selectedId = input.value;
+    startBtn.disabled = false;
   });
 
-  // Escuchar el aviso del orquestador en lugar de cargar automáticamente
+  startBtn?.addEventListener("click", () => {
+    const conf = allConferences.find((c) => String(c.conference_id) === selectedId);
+    if (!conf) return;
+    clearInterval(timeCheckInterval);
+    document.dispatchEvent(new CustomEvent("sirae:start-kiosk", { detail: conf }));
+  });
+
+  document.getElementById("btn-back-menu")?.addEventListener("click", () => {
+    document.dispatchEvent(new CustomEvent("sirae:navigate", { detail: { view: "menu" } }));
+  });
+
   window.addEventListener("sirae:auth-ready", loadConferences);
   section?.addEventListener("select:refresh", loadConferences);
 </script>

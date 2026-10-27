@@ -2,226 +2,379 @@
 const { id, hidden } = Astro.props;
 ---
 
-<section id={id} hidden={hidden} class="flex flex-col min-h-[calc(100vh-8rem)]">
-    <!-- Cabecera de la conferencia en curso -->
+<section id={id} hidden={hidden} class="mx-auto flex min-h-[calc(100vh-8rem)] max-w-4xl flex-col">
+  <!-- Cabecera de la conferencia en curso -->
+  <div class="mb-6 flex flex-col gap-4 rounded-custom border border-border-main bg-white p-4 shadow-custom sm:mb-8 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+    <div class="min-w-0">
+      <span
+        id="kiosk-status"
+        class="inline-flex items-center rounded-full bg-turq-pale px-3 py-1 text-xs font-bold tracking-wide text-turq-acc"
+      >
+        REGISTRO ABIERTO
+      </span>
+      <h2 id="kiosk-title" class="mt-2 line-clamp-2 break-words text-xl font-bold text-navy sm:text-2xl">Cargando...</h2>
+    </div>
+
+    <div class="flex items-center justify-between gap-6 sm:justify-end">
+      <div class="sm:text-right">
+        <p id="kiosk-count" class="text-4xl font-bold tabular-nums text-navy" aria-live="polite">–</p>
+        <p class="text-xs font-semibold uppercase tracking-wider text-text-muted">Asistentes</p>
+      </div>
+      <button
+        id="btn-end"
+        type="button"
+        class="rounded-custom border-2 border-border-main px-5 py-2.5 font-bold text-text-mid transition-colors hover:bg-bg-main"
+      >
+        ← Volver
+      </button>
+    </div>
+  </div>
+
+  <!-- Zona central de escaneo -->
+  <div class="flex flex-1 flex-col items-center justify-center pb-6">
+    <!-- Feedback (UX guiada por color) -->
     <div
-        class="flex items-center justify-between bg-white shadow-custom rounded-custom p-6 mb-8 border border-border-main"
+      id="scan-feedback"
+      role="status"
+      aria-live="assertive"
+      class="w-full max-w-2xl rounded-custom border-4 border-transparent bg-white p-8 text-center shadow-custom-lg transition-all duration-300 sm:p-12"
     >
-        <div>
-            <span
-                id="kiosk-status"
-                class="inline-flex items-center px-3 py-1 rounded-full bg-turq-pale text-turq-acc text-xs font-bold tracking-wide"
-            >
-                REGISTRO ABIERTO
-            </span>
-            <h2 id="kiosk-title" class="text-2xl font-bold text-navy mt-2">
-                Cargando...
-            </h2>
-        </div>
-        <div class="text-right flex items-center gap-6">
-            <div>
-                <p
-                    id="kiosk-count"
-                    class="text-4xl font-bold text-navy tabular-nums"
-                >
-                    0
-                </p>
-                <p
-                    class="text-xs font-semibold text-text-muted uppercase tracking-wider"
-                >
-                    Asistentes
-                </p>
-            </div>
-            <button
-                id="btn-end"
-                class="px-6 py-2.5 rounded-custom border-2 border-border-main text-text-mid font-bold hover:bg-bg-main transition-colors"
-            >
-                Finalizar
-            </button>
-        </div>
+      <div id="feedback-icon" class="mx-auto mb-6 flex size-20 items-center justify-center rounded-full bg-bg-main text-4xl">⏳</div>
+      <h3 id="feedback-title" class="text-2xl font-bold text-navy sm:text-3xl">Esperando credencial</h3>
+      <p id="feedback-subtitle" class="mt-2 text-base text-text-muted sm:text-lg">Acerca tu credencial al lector</p>
     </div>
 
-    <!-- Zona central de escaneo (UX guiada por color) -->
-    <div class="flex-1 flex flex-col items-center justify-center">
-        <div
-            id="scan-feedback"
-            class="w-full max-w-2xl bg-white shadow-custom-lg rounded-custom p-12 text-center border-4 border-transparent transition-all duration-300"
-        >
-            <div
-                id="feedback-icon"
-                class="size-20 mx-auto rounded-full bg-bg-main flex items-center justify-center text-4xl mb-6"
-            >
-                ⏳
-            </div>
-            <h3 id="feedback-title" class="text-3xl font-bold text-navy">
-                Esperando credencial
-            </h3>
-            <p id="feedback-subtitle" class="text-lg text-text-muted mt-2">
-                Acerca la tarjeta al lector o usa el teclado
-            </p>
-        </div>
-
-        <!-- Input invisible pero accesible -->
+    <!-- Entrada manual: código visible -->
+    <form id="manual-form" class="mt-6 w-full max-w-2xl" autocomplete="off" novalidate>
+      <label for="code-input" class="mb-2 block text-center text-sm font-semibold text-text-mid">
+        O ingresa tu código de estudiante
+      </label>
+      <div class="flex gap-2">
         <input
-            id="nfc-input"
-            type="text"
-            autofocus
-            autocomplete="off"
-            class="opacity-0 absolute -z-10"
-            aria-label="Lector NFC o teclado"
+          id="code-input"
+          type="text"
+          inputmode="text"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          maxlength="20"
+          placeholder="Escribe tu código"
+          class="min-w-0 flex-1 rounded-custom border-2 border-border-main bg-white px-4 py-3 font-mono text-lg tracking-wider text-navy transition-all placeholder:font-poppins placeholder:text-base placeholder:tracking-normal placeholder:text-text-muted focus:border-turq-acc focus:outline-none focus:ring-2 focus:ring-turq-acc/20"
         />
+        <button
+          type="submit"
+          class="shrink-0 rounded-custom bg-navy px-6 py-3 font-bold text-white transition hover:bg-navy-mid hover:shadow-md"
+        >
+          Registrar
+        </button>
+      </div>
+    </form>
+
+    <!-- Estado del lector + acciones sutiles -->
+    <div class="mt-5 flex w-full max-w-2xl flex-wrap items-center justify-between gap-3 text-xs text-text-muted">
+      <div class="flex items-center gap-2">
+        <span
+          id="reader-dot"
+          data-ready="false"
+          class="size-2.5 rounded-full bg-text-muted/40 transition-colors data-[ready=true]:bg-green"
+        ></span>
+        <span id="reader-label">Lector inactivo</span>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <button
+          id="btn-nfc-phone"
+          type="button"
+          hidden
+          class="font-semibold text-navy underline-offset-2 hover:underline"
+        >
+          Usar NFC del celular
+        </button>
+        <button
+          id="btn-refocus"
+          type="button"
+          class="font-semibold text-text-mid underline-offset-2 transition-colors hover:text-navy hover:underline"
+        >
+          Escanear credencial
+        </button>
+      </div>
     </div>
+
+    <!-- Receptor de la credencial (lector USB): oculto para no mostrar el UID.
+         inputmode="none" evita que se abra el teclado en celulares. -->
+    <input
+      id="nfc-input"
+      type="text"
+      inputmode="none"
+      autofocus
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      class="sr-only"
+      aria-label="Lector de credencial NFC"
+    />
+  </div>
 </section>
 
 <script>
-    import { supabase } from "../../lib/supabase";
+  import { supabase } from "../../lib/supabase";
 
-    const section = document.getElementById("view-register");
-    const input = document.getElementById("nfc-input") as HTMLInputElement;
-    const feedbackBox = document.getElementById("scan-feedback");
-    const feedbackIcon = document.getElementById("feedback-icon");
-    const feedbackTitle = document.getElementById("feedback-title");
-    const feedbackSubtitle = document.getElementById("feedback-subtitle");
+  // ---------- Elementos ----------
+  const section = document.getElementById("view-register")!;
+  const reader = document.getElementById("nfc-input") as HTMLInputElement; // credencial (oculto)
+  const codeInput = document.getElementById("code-input") as HTMLInputElement; // código manual (visible)
+  const manualForm = document.getElementById("manual-form") as HTMLFormElement;
+  const feedbackBox = document.getElementById("scan-feedback")!;
+  const feedbackIcon = document.getElementById("feedback-icon")!;
+  const feedbackTitle = document.getElementById("feedback-title")!;
+  const feedbackSubtitle = document.getElementById("feedback-subtitle")!;
+  const countEl = document.getElementById("kiosk-count")!;
+  const readerDot = document.getElementById("reader-dot")!;
+  const readerLabel = document.getElementById("reader-label")!;
+  const btnRefocus = document.getElementById("btn-refocus")!;
+  const btnNfcPhone = document.getElementById("btn-nfc-phone") as HTMLButtonElement;
 
-    let activeConferenceId: number | null = null;
-    let resetTimer: number;
+  let activeConferenceId: number | null = null;
+  let resetTimer: number;
 
-    // Forzar foco ininterrumpido (UX sin mouse)
-    const keepFocus = () => {
-        if (!section?.hidden) input.focus({ preventScroll: true });
+  const esc = (s: unknown) =>
+    String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
+  // ---------- Foco: siempre regresa al receptor de la credencial ----------
+  function pulseReady() {
+    readerDot.classList.remove("animate-focus-ring");
+    void readerDot.offsetWidth; // reinicia la animación
+    readerDot.classList.add("animate-focus-ring");
+  }
+
+  function paintReader() {
+    const ready = document.activeElement === reader;
+    readerDot.dataset.ready = String(ready);
+    readerLabel.textContent = ready ? "Lector listo" : "Lector inactivo";
+  }
+
+  function focusReader(flash = false) {
+    if (section.hidden) return;
+    if (document.activeElement !== reader) reader.focus({ preventScroll: true });
+    paintReader();
+    if (flash) pulseReady();
+  }
+
+  reader.addEventListener("focus", paintReader);
+  reader.addEventListener("blur", () => {
+    paintReader();
+    // Si el usuario pasó al campo de código, respetarlo; en cualquier otro caso, recuperar el foco
+    setTimeout(() => {
+      if (section.hidden || document.activeElement === codeInput) return;
+      const a = document.activeElement;
+      if (!a || a === document.body) focusReader(true);
+    }, 60);
+  });
+
+  codeInput.addEventListener("blur", () => {
+    setTimeout(() => {
+      const a = document.activeElement;
+      if (!section.hidden && (!a || a === document.body)) focusReader(true);
+    }, 100);
+  });
+
+  // Click en cualquier parte (salvo el formulario manual) devuelve el foco al lector
+  document.addEventListener("click", (e) => {
+    if (section.hidden) return;
+    if ((e.target as Element).closest("#manual-form")) return;
+    focusReader();
+  });
+  window.addEventListener("focus", () => focusReader(true)); // al volver a la pestaña
+  btnRefocus.addEventListener("click", () => focusReader(true));
+
+  // ---------- Contador (siempre desde la BD, por conferencia) ----------
+  let countToken = 0;
+
+  async function refreshCount(confId: number) {
+    const token = ++countToken;
+    const { count, error } = await supabase
+      .from("attendances") // ← ajusta si tu tabla se llama distinto
+      .select("*", { count: "exact", head: true })
+      .eq("conference_id", confId);
+
+    // Ignorar respuestas viejas (otra conferencia o consulta más reciente)
+    if (token !== countToken || confId !== activeConferenceId) return;
+    if (error || count === null) return;
+    countEl.textContent = String(count);
+  }
+
+  // ---------- Inicialización desde el orquestador ----------
+  section.addEventListener("kiosk:init", ((e: CustomEvent) => {
+    const conf = e.detail;
+    activeConferenceId = conf.conference_id;
+
+    document.getElementById("kiosk-title")!.textContent = conf.conference_name;
+    countEl.textContent = "–"; // nunca mostrar el número de otra conferencia
+    codeInput.value = "";
+    reader.value = "";
+
+    setIdle();
+    focusReader(true);
+    refreshCount(conf.conference_id);
+  }) as EventListener);
+
+  document.getElementById("btn-end")?.addEventListener("click", () => {
+    stopPhoneNfc();
+    activeConferenceId = null;
+    countToken++; // invalida consultas en vuelo
+    document.dispatchEvent(new Event("sirae:end-kiosk"));
+  });
+
+  // ---------- Entrada de códigos ----------
+  // Lector USB: termina con Enter
+  reader.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const code = reader.value;
+    reader.value = "";
+    submitCode(code);
+  });
+
+  // Código manual: se envía y el foco vuelve al lector
+  manualForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const code = codeInput.value;
+    codeInput.value = "";
+    submitCode(code);
+    focusReader(true);
+  });
+
+  // Cola: si pasan varias credenciales seguidas se procesan en orden
+  let queue: Promise<void> = Promise.resolve();
+
+  function submitCode(raw: string) {
+    const code = raw.trim();
+    if (!code || activeConferenceId == null) return;
+    const confId = activeConferenceId;
+    queue = queue.then(() => processAttendance(confId, code)).catch(() => {});
+  }
+
+  async function processAttendance(confId: number, code: string) {
+    const { data, error } = await supabase.rpc("register_attendance", {
+      p_conference_id: confId,
+      p_code: code,
+    });
+
+    if (confId !== activeConferenceId) return; // el usuario ya salió de esa conferencia
+
+    if (error || !data) {
+      return setFeedback("error", "Error de conexión", "Vuelve a intentarlo");
+    }
+
+    switch (data.status) {
+      case "registered":
+        setFeedback("success", "Asistencia Registrada", data.full_name || "Alumno sin cuenta", data.student_code);
+        countEl.textContent = String((Number(countEl.textContent) || 0) + 1); // respuesta inmediata
+        refreshCount(confId); // y se confirma contra la BD
+        break;
+      case "duplicate":
+        setFeedback("warn", "Ya registrado", "Esta credencial ya pasó asistencia hoy", data.student_code);
+        break;
+      default:
+        setFeedback("error", "Acceso denegado", String(data.status));
+    }
+  }
+
+  // ---------- Feedback visual ----------
+  function setFeedback(state: "idle" | "success" | "warn" | "error", title: string, subtitle: string, code = "") {
+    clearTimeout(resetTimer);
+
+    const states = {
+      idle:    { border: "border-transparent",   bg: "bg-white",       iconBg: "bg-bg-main",               icon: "⏳", text: "text-navy" },
+      success: { border: "border-green",         bg: "bg-green-pale",  iconBg: "bg-green text-white",      icon: "✓",  text: "text-green" },
+      warn:    { border: "border-[#f5a623]",     bg: "bg-[#fff9e6]",   iconBg: "bg-[#f5a623] text-white",  icon: "!",  text: "text-[#d48c00]" },
+      error:   { border: "border-[#e02424]",     bg: "bg-[#fde8e8]",   iconBg: "bg-[#e02424] text-white",  icon: "✕",  text: "text-[#c81e1e]" },
     };
-    document.addEventListener("click", keepFocus);
-    window.addEventListener("blur", () => setTimeout(keepFocus, 10));
 
-    // Recibir inicialización del Orquestador
-    section?.addEventListener("kiosk:init", ((e: CustomEvent) => {
-        const conf = e.detail;
-        activeConferenceId = conf.conference_id;
-        document.getElementById("kiosk-title")!.textContent =
-            conf.conference_name;
-        keepFocus();
-        setIdle();
-    }) as EventListener);
+    const s = states[state];
+    feedbackBox.className = `w-full max-w-2xl rounded-custom border-4 p-8 text-center shadow-custom-lg transition-colors duration-200 sm:p-12 ${s.border} ${s.bg}`;
+    feedbackIcon.className = `mx-auto mb-6 flex size-20 items-center justify-center rounded-full text-4xl ${s.iconBg}`;
+    feedbackIcon.textContent = s.icon;
+    feedbackTitle.className = `text-2xl font-bold sm:text-3xl ${s.text}`;
+    feedbackTitle.textContent = title;
 
-    document.getElementById("btn-end")?.addEventListener("click", () => {
-        document.dispatchEvent(new Event("sirae:end-kiosk"));
-        activeConferenceId = null;
-    });
+    feedbackSubtitle.innerHTML = code
+      ? `<span class="block break-words text-xl font-bold text-navy">${esc(subtitle)}</span><span class="font-mono text-sm text-text-muted">${esc(code)}</span>`
+      : `<span class="break-words text-text-mid">${esc(subtitle)}</span>`;
 
-    // Procesamiento de lectura de Hardware (NFC/Teclado)
-    input?.addEventListener("keydown", async (e) => {
-        if (e.key !== "Enter") return;
-        e.preventDefault();
-        const code = input.value.trim();
-        input.value = "";
-        if (!code || !activeConferenceId) return;
+    if (state !== "idle") resetTimer = window.setTimeout(setIdle, 2500);
+  }
 
-        await processAttendance(code);
-    });
+  function setIdle() {
+    setFeedback("idle", "Esperando credencial", "Acerca tu credencial al lector");
+  }
 
-    async function processAttendance(code: string) {
-        // 1. Llamada a la DB desacoplada
-        const { data, error } = await supabase.rpc("register_attendance", {
-            p_conference_id: activeConferenceId,
-            p_code: code,
-        });
+  // ---------- NFC del celular (Web NFC: solo Chrome en Android, HTTPS) ----------
+  const nfcSupported = "NDEFReader" in window && window.isSecureContext;
+  let nfcAbort: AbortController | null = null;
+  let lastPhoneCode = "";
+  let lastPhoneAt = 0;
 
-        if (error || !data)
-            return setFeedback(
-                "error",
-                "Error de conexión",
-                "Vuelve a pasar la credencial",
-            );
+  /**
+   * Convierte el serialNumber de Web NFC (ej. "04:a1:b2:c3") al formato que
+   * entrega tu lector USB. AJUSTA ESTA FUNCIÓN al formato real guardado en BD.
+   * Por defecto: hexadecimal en mayúsculas, sin ":".
+   *
+   * Si tu lector USB entrega el UID en decimal (muy común), usa por ejemplo:
+   *   const bytes = serial.split(":").map((h) => parseInt(h, 16));
+   *   return String(parseInt(bytes.reverse().map((b) => b.toString(16).padStart(2, "0")).join(""), 16));
+   */
+  function formatUid(serial: string): string {
+    return serial.replace(/:/g, "").toUpperCase();
+  }
 
-        // 2. Feedback visual basado en colores institucionales
-        switch (data.status) {
-            case "registered":
-                setFeedback(
-                    "success",
-                    "Asistencia Registrada",
-                    data.full_name || "Alumno sin cuenta",
-                    data.student_code,
-                );
-                updateCount(1);
-                break;
-            case "duplicate":
-                setFeedback(
-                    "warn",
-                    "Ya registrado",
-                    "Esta credencial ya pasó asistencia hoy",
-                    data.student_code,
-                );
-                break;
-            default:
-                setFeedback("error", "Acceso denegado", data.status);
-        }
+  function paintNfcButton(active: boolean) {
+    btnNfcPhone.textContent = active ? "NFC del celular activo · Desactivar" : "Usar NFC del celular";
+    btnNfcPhone.classList.toggle("text-green", active);
+  }
+
+  async function startPhoneNfc() {
+    try {
+      const ndef = new (window as any).NDEFReader();
+      nfcAbort = new AbortController();
+
+      ndef.addEventListener("reading", (ev: any) => {
+        if (!ev.serialNumber) return;
+        const code = formatUid(ev.serialNumber);
+        // Android dispara "reading" varias veces mientras la tarjeta está pegada
+        const now = Date.now();
+        if (code === lastPhoneCode && now - lastPhoneAt < 3000) return;
+        lastPhoneCode = code;
+        lastPhoneAt = now;
+        submitCode(code);
+      });
+      ndef.addEventListener("readingerror", () => {
+        setFeedback("error", "No se pudo leer", "Acerca de nuevo la credencial al celular");
+      });
+
+      await ndef.scan({ signal: nfcAbort.signal });
+      paintNfcButton(true);
+      setFeedback("idle", "NFC del celular activo", "Acerca la credencial a la parte trasera del celular");
+    } catch (err: any) {
+      nfcAbort = null;
+      paintNfcButton(false);
+      setFeedback(
+        "error",
+        "NFC no disponible",
+        err?.name === "NotAllowedError" ? "Permite el acceso a NFC en el navegador" : "Activa el NFC en los ajustes del celular",
+      );
     }
+  }
 
-    function setFeedback(
-        state: "idle" | "success" | "warn" | "error",
-        title: string,
-        subtitle: string,
-        code = "",
-    ) {
-        clearTimeout(resetTimer);
+  function stopPhoneNfc() {
+    nfcAbort?.abort();
+    nfcAbort = null;
+    paintNfcButton(false);
+  }
 
-        // Mapeo de colores institucionales a Tailwind
-        const states = {
-            idle: {
-                border: "border-transparent",
-                bg: "bg-white",
-                iconBg: "bg-bg-main",
-                icon: "⏳",
-                text: "text-navy",
-            },
-            success: {
-                border: "border-green",
-                bg: "bg-green-pale",
-                iconBg: "bg-green text-white",
-                icon: "✓",
-                text: "text-green",
-            },
-            warn: {
-                border: "border-[#f5a623]",
-                bg: "bg-[#fff9e6]",
-                iconBg: "bg-[#f5a623] text-white",
-                icon: "!",
-                text: "text-[#d48c00]",
-            },
-            error: {
-                border: "border-[#e02424]",
-                bg: "bg-[#fde8e8]",
-                iconBg: "bg-[#e02424] text-white",
-                icon: "✕",
-                text: "text-[#c81e1e]",
-            },
-        };
-
-        const s = states[state];
-        feedbackBox!.className = `w-full max-w-2xl shadow-custom-lg rounded-custom p-12 text-center border-4 transition-colors duration-200 ${s.border} ${s.bg}`;
-        feedbackIcon!.className = `size-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-6 ${s.iconBg}`;
-        feedbackIcon!.textContent = s.icon;
-        feedbackTitle!.className = `text-3xl font-bold ${s.text}`;
-        feedbackTitle!.textContent = title;
-
-        // Subtítulo muestra el nombre, si hay código lo muestra en tipografía monospace
-        feedbackSubtitle!.innerHTML = code
-            ? `<span class="block text-navy font-bold text-xl">${subtitle}</span><span class="font-mono text-sm text-text-muted">${code}</span>`
-            : `<span class="text-text-mid">${subtitle}</span>`;
-
-        if (state !== "idle") resetTimer = window.setTimeout(setIdle, 2500);
-    }
-
-    function setIdle() {
-        setFeedback(
-            "idle",
-            "Esperando credencial",
-            "Acerca la tarjeta al lector o usa el teclado",
-        );
-    }
-
-    function updateCount(add: number) {
-        const el = document.getElementById("kiosk-count");
-        if (el) el.textContent = String(Number(el.textContent) + add);
-    }
+  if (nfcSupported) {
+    btnNfcPhone.hidden = false;
+    // scan() exige un gesto del usuario, por eso se activa con un botón
+    btnNfcPhone.addEventListener("click", () => (nfcAbort ? stopPhoneNfc() : startPhoneNfc()));
+  }
 </script>

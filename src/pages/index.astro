@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/sirae/Header.astro";
+import ActionMenu from "../components/sirae/ActionMenu.astro";
 import ConferenceSelect from "../components/sirae/ConferenceSelect.astro";
 import ScannerKiosk from "../components/sirae/ScannerKiosk.astro";
 import CreateConferenceModal from "../components/sirae/CreateConferenceModal.astro";
@@ -14,9 +15,10 @@ import CreateConferenceModal from "../components/sirae/CreateConferenceModal.ast
 
   <div id="app-content" class="min-h-screen bg-bg-main text-text-main font-poppins selection:bg-turq-acc/30 hidden">
     <Header />
-    
-    <main class="relative z-10 mx-auto max-w-6xl px-6 py-10 md:px-10">
-      <ConferenceSelect id="view-select" />
+
+    <main class="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 md:px-10">
+      <ActionMenu id="view-menu" />
+      <ConferenceSelect id="view-select" hidden />
       <ScannerKiosk id="view-register" hidden />
     </main>
 
@@ -27,29 +29,42 @@ import CreateConferenceModal from "../components/sirae/CreateConferenceModal.ast
 <script>
   import { supabase } from "../lib/supabase";
 
-  // Orquestador de vistas simple
-  const viewSelect = document.getElementById("view-select");
-  const viewRegister = document.getElementById("view-register");
+  // Orquestador de vistas: menu → select → register
+  type View = "menu" | "select" | "register";
+
+  const views: Record<View, HTMLElement | null> = {
+    menu: document.getElementById("view-menu"),
+    select: document.getElementById("view-select"),
+    register: document.getElementById("view-register"),
+  };
+
+  function showView(name: View) {
+    (Object.keys(views) as View[]).forEach((key) => {
+      const el = views[key];
+      if (el) el.hidden = key !== name;
+    });
+    window.scrollTo({ top: 0 });
+  }
+
+  document.addEventListener("sirae:navigate", ((e: CustomEvent<{ view: View }>) => {
+    const view = e.detail.view;
+    showView(view);
+    if (view === "select") views.select?.dispatchEvent(new Event("select:refresh"));
+  }) as EventListener);
 
   document.addEventListener("sirae:start-kiosk", ((e: CustomEvent) => {
-    if(viewSelect) viewSelect.hidden = true;
-    if(viewRegister) {
-      viewRegister.hidden = false;
-      viewRegister.dispatchEvent(new CustomEvent("kiosk:init", { detail: e.detail }));
-    }
+    showView("register");
+    views.register?.dispatchEvent(new CustomEvent("kiosk:init", { detail: e.detail }));
   }) as EventListener);
 
   document.addEventListener("sirae:end-kiosk", () => {
-    if(viewRegister) viewRegister.hidden = true;
-    if(viewSelect) {
-      viewSelect.hidden = false;
-      viewSelect.dispatchEvent(new Event("select:refresh"));
-    }
+    showView("select");
+    views.select?.dispatchEvent(new Event("select:refresh"));
   });
 
   async function checkAccess() {
     const { data: { session } } = await supabase.auth.getSession();
-    
+
     if (!session) {
       window.location.replace("/acceso-denegado?motivo=sesion");
       return;
@@ -61,7 +76,7 @@ import CreateConferenceModal from "../components/sirae/CreateConferenceModal.ast
       .eq("id", session.user.id)
       .single();
 
-    if (!profile || !['admin', 'organizer'].includes(profile.role)) {
+    if (!profile || !["admin", "organizer"].includes(profile.role)) {
       window.location.replace("/acceso-denegado?motivo=rol");
       return;
     }
@@ -69,8 +84,8 @@ import CreateConferenceModal from "../components/sirae/CreateConferenceModal.ast
     // Permiso concedido
     document.getElementById("auth-loader")?.remove();
     document.getElementById("app-content")?.classList.remove("hidden");
-    
-    // NUEVO: Avisar a los componentes que ya pueden consultar la BD con seguridad
+
+    // Avisar a los componentes que ya pueden consultar la BD con seguridad
     window.dispatchEvent(new Event("sirae:auth-ready"));
   }
 
