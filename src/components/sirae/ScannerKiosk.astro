@@ -2,54 +2,105 @@
 const { id, hidden } = Astro.props;
 ---
 
-<section id={id} hidden={hidden} class="mx-auto flex min-h-[calc(100vh-8rem)] max-w-4xl flex-col">
-  <!-- Cabecera de la conferencia en curso -->
-  <div class="mb-6 flex flex-col gap-4 rounded-custom border border-border-main bg-white p-4 shadow-custom sm:mb-8 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-    <div class="min-w-0">
-      <span
-        id="kiosk-status"
-        class="inline-flex items-center rounded-full bg-turq-pale px-3 py-1 text-xs font-bold tracking-wide text-turq-acc"
-      >
-        REGISTRO ABIERTO
-      </span>
-      <h2 id="kiosk-title" class="mt-2 line-clamp-2 break-words text-xl font-bold text-navy sm:text-2xl">Cargando...</h2>
-    </div>
-
-    <div class="flex items-center justify-between gap-6 sm:justify-end">
-      <div class="sm:text-right">
-        <p id="kiosk-count" class="text-4xl font-bold tabular-nums text-navy" aria-live="polite">–</p>
-        <p class="text-xs font-semibold uppercase tracking-wider text-text-muted">Asistentes</p>
+<section id={id} hidden={hidden} class="mx-auto flex min-h-[calc(100vh-7rem)] max-w-5xl flex-col px-4 py-5 sm:px-6 sm:py-8">
+  <!-- Resumen de la conferencia activa -->
+  <div class="relative mb-6 overflow-hidden rounded-[1.75rem] border border-border-main/80 bg-white shadow-custom">
+    <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-navy via-turq-acc to-green"></div>
+    <div class="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6">
+      <div class="flex min-w-0 items-start gap-4">
+        <div class="hidden size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-navy to-[#0a6687] text-white shadow-md sm:flex" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="3.5" width="14" height="17" rx="2.5"></rect>
+            <path d="M8.5 8h7M8.5 12h4"></path>
+            <path d="m9 16 1.7 1.7L15 14.5"></path>
+          </svg>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span id="kiosk-status" class="inline-flex items-center gap-2 rounded-full border border-green/20 bg-green-pale px-3 py-1 text-[11px] font-bold tracking-[0.12em] text-navy">
+              <span class="size-1.5 rounded-full bg-green shadow-[0_0_0_3px_rgba(64,206,2,0.12)]"></span>
+              REGISTRO ABIERTO
+            </span>
+            <span class="text-[10px] font-semibold uppercase tracking-[0.19em] text-text-muted">Conferencia activa</span>
+          </div>
+          <h2 id="kiosk-title" class="break-words font-stellalabs text-xl font-bold leading-tight tracking-tight text-navy sm:text-2xl">Cargando...</h2>
+          <p class="mt-1.5 text-sm text-text-muted">Escanea una credencial para registrar la asistencia.</p>
+        </div>
       </div>
-      <button
-        id="btn-end"
-        type="button"
-        class="rounded-custom border-2 border-border-main px-5 py-2.5 font-bold text-text-mid transition-colors hover:bg-bg-main"
-      >
-        ← Volver
-      </button>
+
+      <div class="flex items-center justify-between gap-3 border-t border-border-lt pt-4 sm:justify-end sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+        <div class="flex min-w-[132px] items-center gap-3 rounded-2xl border border-border-lt bg-bg-main/80 px-4 py-2.5">
+          <div class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-turq-pale text-navy" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="10" cy="7" r="4"></circle>
+              <path d="M20 8v6M17 11h6"></path>
+            </svg>
+          </div>
+          <div>
+            <p id="kiosk-count" class="font-stellalabs text-2xl font-bold leading-none tabular-nums text-navy" aria-live="polite">–</p>
+            <p class="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">Asistentes</p>
+          </div>
+        </div>
+        <button
+          id="btn-end"
+          type="button"
+          class="inline-flex shrink-0 items-center gap-2 rounded-xl border border-border-main bg-white px-4 py-3 text-sm font-bold text-text-mid transition-all hover:border-turq-acc hover:bg-turq-pale hover:text-navy focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-turq-acc/20"
+        >
+          <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m15 18-6-6 6-6"></path><path d="M9 12h11"></path>
+          </svg>
+          Volver
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Zona central de escaneo -->
-  <div class="flex flex-1 flex-col items-center justify-center pb-6">
-    <!-- Feedback (UX guiada por color) -->
+  <!-- Estado principal del lector -->
+  <div class="flex flex-1 flex-col items-center justify-center pb-5">
     <div
       id="scan-feedback"
       role="status"
       aria-live="assertive"
-      class="w-full max-w-2xl rounded-custom border-4 border-transparent bg-white p-8 text-center shadow-custom-lg transition-all duration-300 sm:p-12"
+      class="relative flex w-full max-w-4xl flex-col items-center gap-5 overflow-hidden rounded-[1.75rem] border border-border-main bg-white p-6 shadow-custom-lg transition-all duration-300 sm:flex-row sm:gap-7 sm:p-9"
     >
-      <div id="feedback-icon" class="mx-auto mb-6 flex size-20 items-center justify-center rounded-full bg-bg-main text-4xl">⏳</div>
-      <h3 id="feedback-title" class="text-2xl font-bold text-navy sm:text-3xl">Esperando credencial</h3>
-      <p id="feedback-subtitle" class="mt-2 text-base text-text-muted sm:text-lg">Acerca tu credencial al lector</p>
+      <div class="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-turq-acc via-navy to-green"></div>
+      <div id="feedback-icon" class="relative z-10 flex size-20 shrink-0 items-center justify-center rounded-2xl bg-turq-pale text-navy shadow-[0_10px_24px_rgba(0,174,204,0.14)] sm:size-24" aria-hidden="true">
+        <svg viewBox="0 0 48 48" class="size-11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6.5" y="10" width="25" height="28" rx="5"></rect>
+          <path d="M12 18h14M12 23h8M12 29h6"></path>
+          <path d="M34 17c4.5 4 4.5 10 0 14M38 12c7 6 7 18 0 24"></path>
+        </svg>
+      </div>
+      <div class="relative z-10 min-w-0 flex-1 text-center sm:text-left">
+        <p class="mb-2 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-turq-acc sm:justify-start">
+          <span class="size-1.5 rounded-full bg-turq-acc"></span>
+          Estado del registro
+        </p>
+        <h3 id="feedback-title" class="font-stellalabs text-2xl font-bold leading-tight tracking-tight text-navy sm:text-3xl">Esperando credencial</h3>
+        <p id="feedback-subtitle" class="mt-2 text-sm leading-relaxed text-text-mid sm:text-base">Acerca tu credencial al lector</p>
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+          <span class="inline-flex items-center gap-2 rounded-full border border-border-lt bg-bg-main px-3 py-1.5 text-[11px] font-semibold text-text-mid">
+            <svg viewBox="0 0 24 24" class="size-4 text-turq-acc" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3.5" y="5" width="11" height="14" rx="2"></rect><path d="M17 8c2 2 2 6 0 8M19.5 5.5c3.5 3.5 3.5 9.5 0 13"></path>
+            </svg>
+            Lectura automática
+          </span>
+          <span class="text-[11px] text-text-muted">La asistencia se valida en el sistema</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Entrada manual: código visible -->
-    <form id="manual-form" class="mt-6 w-full max-w-2xl" autocomplete="off" novalidate>
-      <label for="code-input" class="mb-2 block text-center text-sm font-semibold text-text-mid">
-        O ingresa tu código de estudiante
-      </label>
-      <div class="flex gap-2">
+    <!-- Alternativa de registro manual -->
+    <form id="manual-form" class="mt-5 w-full max-w-4xl rounded-2xl border border-border-main/80 bg-white p-4 shadow-custom sm:p-5" autocomplete="off" novalidate>
+      <div class="mb-4 flex flex-col gap-1.5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <label for="code-input" class="block text-sm font-bold text-navy">Registrar con código de estudiante</label>
+          <p class="mt-1 text-xs text-text-muted">Utiliza esta opción si no tienes tu credencial a la mano.</p>
+        </div>
+        <span class="w-fit rounded-full bg-turq-pale px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.13em] text-navy">Entrada manual</span>
+      </div>
+      <div class="flex flex-col gap-2 sm:flex-row">
         <input
           id="code-input"
           type="text"
@@ -59,49 +110,58 @@ const { id, hidden } = Astro.props;
           spellcheck="false"
           maxlength="20"
           placeholder="Escribe tu código"
-          class="min-w-0 flex-1 rounded-custom border-2 border-border-main bg-white px-4 py-3 font-mono text-lg tracking-wider text-navy transition-all placeholder:font-poppins placeholder:text-base placeholder:tracking-normal placeholder:text-text-muted focus:border-turq-acc focus:outline-none focus:ring-2 focus:ring-turq-acc/20"
+          class="h-12 min-w-0 flex-1 rounded-xl border border-border-main bg-bg-main/60 px-4 font-mono text-base tracking-wider text-navy transition-all placeholder:font-poppins placeholder:text-sm placeholder:tracking-normal placeholder:text-text-muted hover:border-[#a9c2da] focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-4 focus:ring-turq-acc/15"
         />
         <button
           type="submit"
-          class="shrink-0 rounded-custom bg-navy px-6 py-3 font-bold text-white transition hover:bg-navy-mid hover:shadow-md"
+          class="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-navy px-6 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-navy-mid hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-turq-acc/25"
         >
           Registrar
+          <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6"></path>
+          </svg>
         </button>
       </div>
     </form>
 
-    <!-- Estado del lector + acciones sutiles -->
-    <div class="mt-5 flex w-full max-w-2xl flex-wrap items-center justify-between gap-3 text-xs text-text-muted">
-      <div class="flex items-center gap-2">
+    <!-- Estado del receptor y acciones -->
+    <div class="mt-4 flex w-full max-w-4xl flex-col gap-3 rounded-2xl border border-border-lt bg-white/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-2.5">
         <span
           id="reader-dot"
           data-ready="false"
-          class="size-2.5 rounded-full bg-text-muted/40 transition-colors data-[ready=true]:bg-green"
+          class="size-2.5 shrink-0 rounded-full bg-text-muted/40 transition-colors data-[ready=true]:bg-green data-[ready=true]:ring-4 data-[ready=true]:ring-green/15"
         ></span>
-        <span id="reader-label">Lector inactivo</span>
+        <div>
+          <p id="reader-label" class="text-xs font-bold text-text-mid">Lector inactivo</p>
+          <p class="mt-0.5 text-[10px] text-text-muted">Estado de conexión del lector USB</p>
+        </div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div class="flex flex-wrap items-center gap-2">
         <button
           id="btn-nfc-phone"
           type="button"
           hidden
-          class="font-semibold text-navy underline-offset-2 hover:underline"
+          data-active="false"
+          class="inline-flex items-center justify-center rounded-xl border border-border-main bg-white px-3.5 py-2.5 text-xs font-semibold text-navy transition-colors hover:border-turq-acc hover:bg-turq-pale data-[active=true]:border-green/30 data-[active=true]:bg-green-pale data-[active=true]:text-navy focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-turq-acc/20"
         >
           Usar NFC del celular
         </button>
         <button
           id="btn-refocus"
           type="button"
-          class="font-semibold text-text-mid underline-offset-2 transition-colors hover:text-navy hover:underline"
+          class="inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold text-text-mid transition-colors hover:bg-turq-pale hover:text-navy focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-turq-acc/20"
         >
-          Escanear credencial
+          <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 4H4v4M16 4h4v4M4 16v4h4M20 16v4h-4"></path><path d="M8 12h8M12 8v8"></path>
+          </svg>
+          Enfocar lector
         </button>
       </div>
     </div>
 
-    <!-- Receptor de la credencial (lector USB): oculto para no mostrar el UID.
-         inputmode="none" evita que se abra el teclado en celulares. -->
+    <!-- Receptor oculto del lector USB; no mostrar el UID en pantalla. -->
     <input
       id="nfc-input"
       type="text"
@@ -285,21 +345,45 @@ const { id, hidden } = Astro.props;
     clearTimeout(resetTimer);
 
     const states = {
-      idle:    { border: "border-transparent",   bg: "bg-white",       iconBg: "bg-bg-main",               icon: "⏳", text: "text-navy" },
-      success: { border: "border-green",         bg: "bg-green-pale",  iconBg: "bg-green text-white",      icon: "✓",  text: "text-green" },
-      warn:    { border: "border-[#f5a623]",     bg: "bg-[#fff9e6]",   iconBg: "bg-[#f5a623] text-white",  icon: "!",  text: "text-[#d48c00]" },
-      error:   { border: "border-[#e02424]",     bg: "bg-[#fde8e8]",   iconBg: "bg-[#e02424] text-white",  icon: "✕",  text: "text-[#c81e1e]" },
+      idle: {
+        border: "border-border-main",
+        bg: "bg-white",
+        iconBg: "bg-turq-pale text-navy shadow-[0_10px_24px_rgba(0,174,204,0.14)]",
+        icon: `<svg viewBox="0 0 48 48" class="size-11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="10" width="25" height="28" rx="5"></rect><path d="M12 18h14M12 23h8M12 29h6"></path><path d="M34 17c4.5 4 4.5 10 0 14M38 12c7 6 7 18 0 24"></path></svg>`,
+        text: "text-navy",
+      },
+      success: {
+        border: "border-green/30",
+        bg: "bg-green-pale/70",
+        iconBg: "bg-green text-white shadow-[0_10px_24px_rgba(64,206,2,0.18)]",
+        icon: `<svg viewBox="0 0 48 48" class="size-11" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="17"></circle><path d="m15.5 24.5 5.5 5.5 11.5-12"></path></svg>`,
+        text: "text-navy",
+      },
+      warn: {
+        border: "border-[#f5a623]/50",
+        bg: "bg-[#fff9e6]",
+        iconBg: "bg-[#f5a623] text-white shadow-[0_10px_24px_rgba(245,166,35,0.2)]",
+        icon: `<svg viewBox="0 0 48 48" class="size-11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M24 6.5 43 39H5L24 6.5Z"></path><path d="M24 18v9M24 33.5h.02"></path></svg>`,
+        text: "text-[#9a6700]",
+      },
+      error: {
+        border: "border-[#e02424]/35",
+        bg: "bg-[#fff1f1]",
+        iconBg: "bg-[#e02424] text-white shadow-[0_10px_24px_rgba(224,36,36,0.17)]",
+        icon: `<svg viewBox="0 0 48 48" class="size-11" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="17"></circle><path d="m18 18 12 12M30 18 18 30"></path></svg>`,
+        text: "text-[#b91c1c]",
+      },
     };
 
     const s = states[state];
-    feedbackBox.className = `w-full max-w-2xl rounded-custom border-4 p-8 text-center shadow-custom-lg transition-colors duration-200 sm:p-12 ${s.border} ${s.bg}`;
-    feedbackIcon.className = `mx-auto mb-6 flex size-20 items-center justify-center rounded-full text-4xl ${s.iconBg}`;
-    feedbackIcon.textContent = s.icon;
-    feedbackTitle.className = `text-2xl font-bold sm:text-3xl ${s.text}`;
+    feedbackBox.className = `relative flex w-full max-w-4xl flex-col items-center gap-5 overflow-hidden rounded-[1.75rem] border p-6 shadow-custom-lg transition-all duration-300 sm:flex-row sm:gap-7 sm:p-9 ${s.border} ${s.bg}`;
+    feedbackIcon.className = `relative z-10 flex size-20 shrink-0 items-center justify-center rounded-2xl sm:size-24 ${s.iconBg}`;
+    feedbackIcon.innerHTML = s.icon;
+    feedbackTitle.className = `font-stellalabs text-2xl font-bold leading-tight tracking-tight sm:text-3xl ${s.text}`;
     feedbackTitle.textContent = title;
 
     feedbackSubtitle.innerHTML = code
-      ? `<span class="block break-words text-xl font-bold text-navy">${esc(subtitle)}</span><span class="font-mono text-sm text-text-muted">${esc(code)}</span>`
+      ? `<span class="block break-words text-lg font-bold text-navy sm:text-xl">${esc(subtitle)}</span><span class="mt-1 inline-block font-mono text-xs tracking-wide text-text-muted">${esc(code)}</span>`
       : `<span class="break-words text-text-mid">${esc(subtitle)}</span>`;
 
     if (state !== "idle") resetTimer = window.setTimeout(setIdle, 2500);
@@ -330,7 +414,7 @@ const { id, hidden } = Astro.props;
 
   function paintNfcButton(active: boolean) {
     btnNfcPhone.textContent = active ? "NFC del celular activo · Desactivar" : "Usar NFC del celular";
-    btnNfcPhone.classList.toggle("text-green", active);
+    btnNfcPhone.dataset.active = String(active);
   }
 
   async function startPhoneNfc() {
