@@ -253,7 +253,7 @@ const { id, hidden } = Astro.props;
   async function refreshCount(confId: number) {
     const token = ++countToken;
     const { count, error } = await supabase
-      .from("attendances") // ← ajusta si tu tabla se llama distinto
+      .from("conferences_attendance")
       .select("*", { count: "exact", head: true })
       .eq("conference_id", confId);
 
