@@ -1,71 +1,72 @@
 ---
 // src/components/sirae/CreateConferenceModal.astro
+const input =
+  "w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 text-sm text-navy transition-all focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20 aria-[invalid=true]:border-[#e02424] aria-[invalid=true]:bg-[#fde8e8]/40";
+const label = "mb-1.5 block text-sm font-semibold text-text-main";
+const hint = "mt-1 text-xs text-text-muted";
 ---
 
 <dialog
   id="create-modal"
-  class="m-auto w-[calc(100%-2rem)] max-w-lg rounded-custom border border-border-main bg-white p-0 text-text-main shadow-custom-lg backdrop:bg-navy/40 backdrop:backdrop-blur-sm open:animate-fade-in-up"
+  aria-labelledby="modal-title"
+  class="m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-lg overflow-y-hidden rounded-custom border border-border-main bg-white p-0 text-text-main shadow-custom-lg backdrop:bg-navy/40 backdrop:backdrop-blur-sm open:animate-fade-in-up"
 >
   <form id="create-form" method="dialog" class="p-6 sm:p-8" novalidate>
     <div class="mb-6 flex items-start justify-between gap-4">
       <div>
-        <h2 class="font-poppins text-xl font-bold text-navy">Nueva conferencia</h2>
+        <h2 id="modal-title" class="font-poppins text-xl font-bold text-navy">Nueva conferencia</h2>
         <p class="mt-1 text-sm text-text-muted">Configura los horarios para la apertura del kiosko.</p>
       </div>
-      <button id="modal-close" type="button" class="text-text-muted hover:text-navy transition-colors text-2xl leading-none" aria-label="Cerrar">&times;</button>
+      <button id="modal-close" type="button" class="text-2xl leading-none text-text-muted transition-colors hover:text-navy" aria-label="Cerrar">&times;</button>
     </div>
 
     <div class="space-y-4">
-      <!-- Input Institucional -->
       <div>
-        <label for="f-name" class="mb-1.5 block text-sm font-semibold text-text-main">Nombre de la conferencia</label>
-        <input id="f-name" name="conference_name" type="text" required maxlength="150" autocomplete="off"
-          class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 text-sm text-navy focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20 transition-all" />
-      </div>
-      
-      <div>
-        <label for="f-speaker" class="mb-1.5 block text-sm font-semibold text-text-main">Ponente</label>
-        <input id="f-speaker" name="speaker_name" type="text" required maxlength="150" autocomplete="off"
-          class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 text-sm text-navy focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20 transition-all" />
+        <label for="f-name" class={label}>Nombre de la conferencia</label>
+        <input id="f-name" name="conference_name" type="text" required maxlength="150" autocomplete="off" autofocus class={input} />
       </div>
 
       <div>
-        <label for="f-site" class="mb-1.5 block text-sm font-semibold text-text-main">Sede</label>
-        <input id="f-site" name="conference_site" type="text" required maxlength="100" autocomplete="off" value="Sala Rubén Villa Señor (CCJAM)"
-          class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 text-sm text-navy focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20 transition-all" />
+        <label for="f-speaker" class={label}>Ponente</label>
+        <input id="f-speaker" name="speaker_name" type="text" required maxlength="150" autocomplete="off" class={input} />
+      </div>
+
+      <div>
+        <label for="f-site" class={label}>Sede</label>
+        <input id="f-site" name="conference_site" type="text" required maxlength="100" autocomplete="off" value="Sala Rubén Villa Señor (CCJAM)" class={input} />
       </div>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label for="f-start" class="mb-1.5 block text-sm font-semibold text-text-main">Inicia</label>
-          <input id="f-start" name="starts" type="datetime-local" required
-            class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 text-sm text-navy focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20 transition-all" />
+          <label for="f-start" class={label}>Inicia</label>
+          <input id="f-start" name="starts" type="datetime-local" required class={input} />
         </div>
         <div>
-          <label for="f-end" class="mb-1.5 block text-sm font-semibold text-text-main">Termina</label>
-          <input id="f-end" name="ends" type="datetime-local" required
-            class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 text-sm text-navy focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20 transition-all" />
+          <label for="f-end" class={label}>Termina</label>
+          <input id="f-end" name="ends" type="datetime-local" required class={input} />
         </div>
         <div>
-          <label for="f-before" class="mb-1.5 block text-sm font-semibold text-text-main">Abrir registro (min antes)</label>
-          <input id="f-before" name="before" type="number" min="0" max="720" value="30" required
-            class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 text-sm text-navy focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20 transition-all" />
+          <label for="f-before" class={label}>Abrir registro</label>
+          <input id="f-before" name="before" type="number" inputmode="numeric" min="0" max="720" step="5" value="30" required class={input} />
+          <p class={hint}>Minutos antes del inicio</p>
         </div>
         <div>
-          <label for="f-after" class="mb-1.5 block text-sm font-semibold text-text-main">Cerrar (min después)</label>
-          <input id="f-after" name="after" type="number" min="0" max="720" value="15" required
-            class="w-full rounded-custom border border-border-main bg-bg-main px-4 py-2.5 text-sm text-navy focus:border-turq-acc focus:bg-white focus:outline-none focus:ring-2 focus:ring-turq-acc/20 transition-all" />
+          <label for="f-after" class={label}>Cerrar registro</label>
+          <input id="f-after" name="after" type="number" inputmode="numeric" min="0" max="720" step="5" value="15" required class={input} />
+          <p class={hint}>Minutos después del inicio</p>
         </div>
       </div>
-      
-      <p id="f-error" class="hidden rounded-custom border border-[#e02424]/30 bg-[#fde8e8] px-4 py-2.5 text-sm text-[#c81e1e] font-semibold"></p>
+
+      <p id="f-summary" aria-live="polite" class="rounded-custom bg-bg-main px-4 py-2.5 text-sm text-text-mid"></p>
+
+      <p id="f-error" role="alert" class="hidden rounded-custom border border-[#e02424]/30 bg-[#fde8e8] px-4 py-2.5 text-sm font-semibold text-[#c81e1e]"></p>
     </div>
 
-    <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end border-t border-border-main pt-5">
+    <div class="mt-8 flex flex-col-reverse gap-3 border-t border-border-main pt-5 sm:flex-row sm:justify-end">
       <button id="modal-cancel" type="button" class="rounded-custom px-6 py-2.5 text-sm font-bold text-text-mid transition hover:bg-bg-main">
         Cancelar
       </button>
-      <button id="modal-submit" type="submit" class="rounded-custom bg-navy px-6 py-2.5 text-sm font-bold text-white transition hover:bg-navy-mid hover:shadow-md disabled:opacity-50">
+      <button id="modal-submit" type="submit" class="rounded-custom bg-navy px-6 py-2.5 text-sm font-bold text-white transition hover:bg-navy-mid hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50">
         Crear conferencia
       </button>
     </div>
@@ -75,72 +76,203 @@
 <script>
   import { supabase } from "../../lib/supabase";
 
-  const modal = document.getElementById("create-modal") as HTMLDialogElement;
-  const form = document.getElementById("create-form") as HTMLFormElement;
-  const errBox = document.getElementById("f-error");
+  const modal = document.getElementById("create-modal") as HTMLDialogElement | null;
+  const form = document.getElementById("create-form") as HTMLFormElement | null;
 
-  // Escuchar botón externo para abrir (definido en ConferenceSelect.astro)
-  document.addEventListener("click", (e) => {
-    const target = e.target as HTMLElement;
-    if (target.closest("#btn-open-modal")) {
-      form.reset();
-      if(errBox) errBox.hidden = true;
-      modal.showModal();
+  if (modal && form) {
+    const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+    const errBox = byId<HTMLParagraphElement>("f-error");
+    const summary = byId<HTMLParagraphElement>("f-summary");
+    const submitBtn = byId<HTMLButtonElement>("modal-submit");
+    const startIn = byId<HTMLInputElement>("f-start");
+    const endIn = byId<HTMLInputElement>("f-end");
+    const beforeIn = byId<HTMLInputElement>("f-before");
+    const afterIn = byId<HTMLInputElement>("f-after");
+    const fields = Array.from(form.querySelectorAll<HTMLInputElement>("input"));
+
+    const HOUR = 3_600_000;
+    let busy = false;
+    let dirty = false;
+    let duration = HOUR; // duración que se conserva al mover la hora de inicio
+
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const toLocalInput = (d: Date) =>
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const isValid = (d: Date) => !Number.isNaN(d.getTime());
+    const fmt = (d: Date) =>
+      d.toLocaleString("es-MX", {hour: "2-digit", minute: "2-digit" });
+
+    // ---------- Estado de error ----------
+    function clearError() {
+      errBox.classList.add("hidden");
+      errBox.textContent = "";
+      fields.forEach((f) => f.removeAttribute("aria-invalid"));
     }
-  });
 
-  // Cerrar Modal
-  const closeModal = () => modal.close();
-  document.getElementById("modal-close")?.addEventListener("click", closeModal);
-  document.getElementById("modal-cancel")?.addEventListener("click", closeModal);
+    function showError(msg: string, field?: HTMLInputElement) {
+      errBox.textContent = msg;
+      errBox.classList.remove("hidden");
+      if (field) {
+        field.setAttribute("aria-invalid", "true");
+        field.focus();
+      }
+    }
 
-  // Lógica de Envío
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (errBox) errBox.hidden = true;
+    // ---------- Valores por defecto y resumen ----------
+    function setDefaults() {
+      const start = new Date();
+      start.setHours(start.getHours() + 1, 0, 0, 0);
+      duration = HOUR;
+      startIn.value = toLocalInput(start);
+      endIn.value = toLocalInput(new Date(start.getTime() + duration));
+      updateSummary();
+    }
 
-    const formData = new FormData(form);
-    const start = new Date(String(formData.get("starts")));
-    const end = new Date(String(formData.get("ends")));
-    const before = Number(formData.get("before"));
-    const after = Number(formData.get("after"));
+    function updateSummary() {
+      const start = new Date(startIn.value);
+      const before = Number(beforeIn.value);
+      const after = Number(afterIn.value);
+      if (!isValid(start) || Number.isNaN(before) || Number.isNaN(after)) {
+        summary.textContent = "";
+        return;
+      }
+      const open = new Date(start.getTime() - before * 60000);
+      const close = new Date(start.getTime() + after * 60000);
+      summary.textContent = `Registro abierto de ${fmt(open)} a ${fmt(close)}`;
+    }
 
-    if (end <= start) return showError("La hora de término debe ser posterior al inicio.");
+    // ---------- Validación ----------
+    function validate() {
+      const get = (n: string) => String(new FormData(form!).get(n) ?? "").trim();
 
-    const regStart = new Date(start.getTime() - before * 60000);
-    const regEnd = new Date(start.getTime() + after * 60000);
+      const checks: [string, HTMLInputElement][] = [
+        ["Escribe el nombre de la conferencia.", byId("f-name")],
+        ["Escribe el nombre del ponente.", byId("f-speaker")],
+        ["Indica la sede.", byId("f-site")],
+      ];
+      const names = ["conference_name", "speaker_name", "conference_site"];
+      for (let i = 0; i < checks.length; i++) {
+        if (!get(names[i])) return { msg: checks[i][0], field: checks[i][1] };
+      }
 
-    const submitBtn = document.getElementById("modal-submit") as HTMLButtonElement;
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Creando...";
+      const start = new Date(startIn.value);
+      const end = new Date(endIn.value);
+      if (!isValid(start)) return { msg: "Indica cuándo inicia.", field: startIn };
+      if (!isValid(end)) return { msg: "Indica cuándo termina.", field: endIn };
+      if (end <= start) return { msg: "La hora de término debe ser posterior al inicio.", field: endIn };
+      if (end.getTime() < Date.now()) return { msg: "La conferencia ya terminó; revisa las fechas.", field: startIn };
 
-    const { error } = await supabase.from("conferences").insert({
-      conference_name: String(formData.get("conference_name")).trim(),
-      speaker_name: String(formData.get("speaker_name")).trim(),
-      conference_site: String(formData.get("conference_site")).trim(),
-      conference_starts_at: start.toISOString(),
-      register_starts_at: regStart.toISOString(),
-      register_ends_at: regEnd.toISOString(),
-      conference_ends_at: end.toISOString(),
+      const inRange = (v: string) => v !== "" && Number.isInteger(Number(v)) && Number(v) >= 0 && Number(v) <= 720;
+      if (!inRange(beforeIn.value)) return { msg: "Apertura de registro: usa un número entre 0 y 720.", field: beforeIn };
+      if (!inRange(afterIn.value)) return { msg: "Cierre de registro: usa un número entre 0 y 720.", field: afterIn };
+
+      return null;
+    }
+
+    // ---------- Abrir / cerrar ----------
+    function openModal() {
+      form!.reset();
+      setDefaults();
+      clearError();
+      dirty = false;
+      modal!.showModal();
+    }
+
+    function requestClose() {
+      if (busy) return;
+      if (dirty && !confirm("¿Descartar los cambios?")) return;
+      modal!.close();
+    }
+
+    document.addEventListener("click", (e) => {
+      if ((e.target as HTMLElement).closest("#btn-open-modal")) openModal();
+    });
+    byId("modal-close").addEventListener("click", requestClose);
+    byId("modal-cancel").addEventListener("click", requestClose);
+
+    // Clic en el fondo: solo cierra si no hay datos capturados
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal && !dirty && !busy) modal.close();
     });
 
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Crear conferencia";
+    // Esc: no cerrar en pleno envío ni perder datos sin avisar
+    modal.addEventListener("cancel", (e) => {
+      if (busy || (dirty && !confirm("¿Descartar los cambios?"))) e.preventDefault();
+    });
 
-    if (error) {
-      showError("No se pudo crear. Verifica tu conexión.");
-      return;
-    }
+    // ---------- Interacción de campos ----------
+    form.addEventListener("input", (e) => {
+      dirty = true;
+      const t = e.target as HTMLInputElement;
+      t.removeAttribute("aria-invalid");
+      if (!errBox.classList.contains("hidden")) clearError();
 
-    closeModal();
-    // 📢 Avisar al componente selector que debe recargar la lista
-    document.getElementById("view-select")?.dispatchEvent(new Event("select:refresh"));
-  });
+      if (t === startIn) {
+        const start = new Date(startIn.value);
+        if (isValid(start)) endIn.value = toLocalInput(new Date(start.getTime() + duration));
+      } else if (t === endIn) {
+        const d = new Date(endIn.value).getTime() - new Date(startIn.value).getTime();
+        if (d > 0) duration = d;
+      }
+      updateSummary();
+    });
 
-  function showError(msg: string) {
-    if (errBox) {
-      errBox.textContent = msg;
-      errBox.hidden = false;
-    }
+    // ---------- Envío ----------
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (busy) return;
+      clearError();
+
+      const problem = validate();
+      if (problem) return showError(problem.msg, problem.field);
+
+      const data = new FormData(form);
+      const start = new Date(startIn.value);
+      const end = new Date(endIn.value);
+      const before = Number(beforeIn.value);
+      const after = Number(afterIn.value);
+
+      busy = true;
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Creando...";
+
+      try {
+        const { data: created, error } = await supabase
+          .from("conferences")
+          .insert({
+            conference_name: String(data.get("conference_name")).trim(),
+            speaker_name: String(data.get("speaker_name")).trim(),
+            conference_site: String(data.get("conference_site")).trim(),
+            conference_starts_at: start.toISOString(),
+            register_starts_at: new Date(start.getTime() - before * 60000).toISOString(),
+            register_ends_at: new Date(start.getTime() + after * 60000).toISOString(),
+            conference_ends_at: end.toISOString(),
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error("[create-conference]", error);
+          if (error.code === "42501") showError("No tienes permiso para crear conferencias. Inicia sesión de nuevo.");
+          else if (error.code === "23505") showError("Ya existe una conferencia con esos datos.");
+          else showError("No se pudo crear la conferencia. Intenta de nuevo.");
+          return;
+        }
+
+        dirty = false;
+        busy = false;
+        modal.close();
+        document
+          .getElementById("view-select")
+          ?.dispatchEvent(new CustomEvent("select:refresh", { detail: { id: created?.id } }));
+      } catch (err) {
+        console.error("[create-conference]", err);
+        showError("Sin conexión con el servidor. Revisa tu red e intenta de nuevo.");
+      } finally {
+        busy = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Crear conferencia";
+      }
+    });
   }
 </script>
